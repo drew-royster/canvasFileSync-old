@@ -2,15 +2,16 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css"> -->
+    <link rel="stylesheet" type="text/css" href="style.css">
     <title>Canvas File Sync</title>
   </head>
   <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
-
+    <div>
+      <input type="text" class="developer-key" placeholder="Developer Key">
+      <button class="start-sync">Sync</button>
+    </div>
     <script>
       // You can also require other files to run in this process
       require('./renderer.js')

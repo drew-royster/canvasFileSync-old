@@ -109,5 +109,3 @@ rootDir = __dirname
     }
     return
   }
-
-  getCanvasFiles()
