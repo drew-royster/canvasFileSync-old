@@ -110,6 +110,7 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
       syncResponse.response,
       rootDir
     );
+    canvasIntegration.saveFileMap();
     lastSynced = new Date(Date.now());
     console.log(lastSynced.toTimeString());
     targetWindow.webContents.send(

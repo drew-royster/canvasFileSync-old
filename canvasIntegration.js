@@ -18,7 +18,7 @@ const getCanvasCourses = (exports.getCanvasCourses = async developerKey => {
     canvasHeaders = { Authorization: `Bearer ${developerKey}` };
     options.headers = canvasHeaders;
     let rootResponse = await request(options);
-    console.log(rootResponse);
+    // console.log(rootResponse);
     return { success: true, message: "success", response: rootResponse };
   } catch (error) {
     console.log(error);
@@ -39,25 +39,18 @@ const getCanvasFiles = (exports.getCanvasFiles = async (courses, rootDir) => {
       fs.mkdirSync(`${rootDir}/${course.name}`);
     }
 
-    if (!(await hasCourse(course.name))) {
-      filesMap.courses.push({
-        name: course.name,
-        last_updated: Date.now(),
-        folders: []
-      });
-    }
-
-    console.log(filesMap);
-
-    getFolderData(
+    await getFolderData(
+      rootDir[0],
       `${rootDir}/${course.name}`,
       "https://uvu.instructure.com/api/v1/courses/" + course.id + "/folders"
     );
   }
+  console.log("got files successfully");
+  return;
 });
 
-const hasCourse = async courseName => {
-  for (let course of filesMap.courses) {
+const hasFolder = async folderName => {
+  for (let folder of filesMap.courses) {
     if (course.name === courseName) {
       return true;
     }
@@ -65,8 +58,7 @@ const hasCourse = async courseName => {
   return false;
 };
 
-const getFolderData = async (folderPath, folderURL) => {
-  console.log(folderURL);
+const getFolderData = async (rootDir, folderPath, folderURL) => {
   folderOptions = options;
   folderOptions.uri = folderURL;
   let folderResponse = await request(folderOptions);
@@ -81,17 +73,19 @@ const getFolderData = async (folderPath, folderURL) => {
 
     //create folder if it doesn't exist
     if (!fs.existsSync(currentFolderPath)) {
-      fs.mkdirSync(currentFolderPath);
+      await fs.mkdirSync(currentFolderPath);
     }
     if (folder.folders_count !== 0 && folder.name !== "course files") {
-      getFolderData(currentFolderPath, folder.folders_url);
+      await getFolderData(rootDir, currentFolderPath, folder.folders_url);
     }
 
-    getFileData(currentFolderPath, folder.files_url);
+    await getFileData(rootDir, currentFolderPath, folder.files_url);
   }
+
+  return;
 };
 
-const getFileData = async (path, url, page = 1) => {
+const getFileData = async (rootDir, path, url, page = 1) => {
   let fileOptions = options;
   fileOptions.uri = url;
   let filesResponse = await request(fileOptions);
@@ -111,12 +105,24 @@ const getFileData = async (path, url, page = 1) => {
     fileDownloadOptions.uri = file.url;
     let filePath = `${path}/${file.display_name}`;
     // console.log(file.url)
-    await request.get(fileDownloadOptions).then(function(res) {
+    await request.get(fileDownloadOptions).then(async function(res) {
       console.log("Found file");
       const buffer = Buffer.from(res, "utf8");
-      fs.writeFileSync(filePath, buffer);
+      await fs.writeFileSync(filePath, buffer);
     });
-    console.log("wrote file");
+    filesMap[filePath] = Date.now();
   }
   return;
 };
+
+const saveFileMap = (exports.saveFileMap = () => {
+  console.log(filesMap);
+  console.log(JSON.stringify(filesMap));
+  fs.writeFile("./filesMap.json", JSON.stringify(filesMap), err => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    console.log("File has been created");
+  });
+});
