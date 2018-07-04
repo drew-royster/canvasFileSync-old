@@ -32,19 +32,22 @@ const getCanvasCourses = (exports.getCanvasCourses = async developerKey => {
 });
 
 const getCanvasFiles = (exports.getCanvasFiles = async (courses, rootDir) => {
-  for (let course of courses) {
-    console.log("looping through courses");
+  try {
+    for (let course of courses) {
+      console.log("looping through courses");
 
-    if (!fs.existsSync(`${rootDir}/${course.name}`)) {
-      fs.mkdirSync(`${rootDir}/${course.name}`);
+      if (!fs.existsSync(`${rootDir}/${course.name}`)) {
+        fs.mkdirSync(`${rootDir}/${course.name}`);
+      }
+
+      await getFolderData(
+        rootDir[0],
+        `${rootDir}/${course.name}`,
+        "https://uvu.instructure.com/api/v1/courses/" + course.id + "/folders"
+      );
     }
+  } catch (error) {}
 
-    await getFolderData(
-      rootDir[0],
-      `${rootDir}/${course.name}`,
-      "https://uvu.instructure.com/api/v1/courses/" + course.id + "/folders"
-    );
-  }
   console.log("got files successfully");
   return;
 });
@@ -101,23 +104,42 @@ const getFileData = async (rootDir, path, url, page = 1) => {
   }
 
   for (let file of filesResponse) {
+    let updatedOnCanvas = new Date(file.updated_at);
     let fileDownloadOptions = options;
     fileDownloadOptions.uri = file.url;
     let filePath = `${path}/${file.display_name}`;
-    // console.log(file.url)
-    await request.get(fileDownloadOptions).then(async function(res) {
-      console.log("Found file");
-      const buffer = Buffer.from(res, "utf8");
-      await fs.writeFileSync(filePath, buffer);
-    });
-    filesMap[filePath] = Date.now();
+
+    console.log(filePath);
+    console.log(fs.existsSync(filePath));
+    if (!fs.existsSync(filePath)) {
+      await request.get(fileDownloadOptions).then(async function(res) {
+        const buffer = Buffer.from(res, "utf8");
+        await fs.writeFileSync(filePath, buffer);
+      });
+      filesMap[filePath] = Date.now();
+    } else {
+      // let fileStat = await fs.statSync(filePath);
+      // console.log(fileStat);
+      let lastCFSUpdate = new Date(filesMap[filePath]);
+
+      // let updatedLocally = new Date(fileStat.mtime);
+
+      if (updatedOnCanvas > lastCFSUpdate) {
+        console.log("updated on canvas");
+        await request.get(fileDownloadOptions).then(async function(res) {
+          const buffer = Buffer.from(res, "utf8");
+          await fs.writeFileSync(filePath, buffer);
+        });
+        filesMap[filePath] = Date.now();
+      } else {
+        console.log("no need to update");
+      }
+    }
   }
   return;
 };
 
 const saveFileMap = (exports.saveFileMap = () => {
-  console.log(filesMap);
-  console.log(JSON.stringify(filesMap));
   fs.writeFile("./filesMap.json", JSON.stringify(filesMap), err => {
     if (err) {
       console.error(err);
