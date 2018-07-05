@@ -26,7 +26,6 @@ const getCanvasCourses = (exports.getCanvasCourses = async (
       connected = true;
     }
     options.headers = canvasHeaders;
-    console.log(options);
     let rootResponse = await request(options);
     return { success: true, message: "success", response: rootResponse };
   } catch (error) {
@@ -71,7 +70,7 @@ const getCanvasFiles = (exports.getCanvasFiles = async (
 });
 
 const getFolderData = async (folderPath, folderURL) => {
-  folderOptions = options;
+  folderOptions = JSON.parse(JSON.stringify(options));
   folderOptions.uri = folderURL;
   let folderResponse = await request(folderOptions);
   for (let folder of folderResponse) {
@@ -98,7 +97,7 @@ const getFolderData = async (folderPath, folderURL) => {
 };
 
 const getFileData = async (path, url, page = 1) => {
-  let fileOptions = options;
+  let fileOptions = JSON.parse(JSON.stringify(options));
   fileOptions.uri = url;
   let filesResponse = await request(fileOptions);
   if (filesResponse.length === 10) {
@@ -107,7 +106,7 @@ const getFileData = async (path, url, page = 1) => {
 
   for (let file of filesResponse) {
     let updatedOnCanvas = new Date(file.updated_at);
-    let fileDownloadOptions = options;
+    let fileDownloadOptions = JSON.parse(JSON.stringify(options));
     fileDownloadOptions.uri = file.url;
     let filePath = `${path}/${file.display_name}`;
 
@@ -135,7 +134,6 @@ const getFileData = async (path, url, page = 1) => {
         console.log("no need to update");
       }
     }
-    console.log(options);
   }
   return;
 };
