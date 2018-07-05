@@ -8,13 +8,19 @@ const devKey = document.querySelector("#developer-key");
 const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
 const devKeyError = document.querySelector("#dev-key-error");
+const schoolCode = document.querySelector("#school-code");
 let rootDir = "";
 
 startButton.addEventListener("click", event => {
   console.log("started sync from renderer");
   console.log(rootDir);
   console.log(devKey.value);
-  mainProcess.syncWithCanvas(currentWindow, devKey.value, rootDir);
+  mainProcess.syncWithCanvas(
+    currentWindow,
+    devKey.value,
+    schoolCode.value,
+    rootDir
+  );
   console.log("finished sync");
 });
 

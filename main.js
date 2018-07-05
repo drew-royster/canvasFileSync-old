@@ -9,12 +9,50 @@ const canvasIntegration = require("./canvasIntegration");
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 let tray = null;
-let lastSynced = null;
+let lastSynced = new Date(canvasIntegration.storage.lastUpdated);
 let connected = false;
 
+let notConnectedMenu = [
+  {
+    label: "Connect",
+    click() {
+      createWindow();
+    },
+    enabled: true
+  },
+  {
+    label: "Disconnect",
+    enabled: false
+  },
+  {
+    label: "Quit",
+    click() {
+      app.quit();
+    },
+    accelerator: "CommandOrControl+Q"
+  }
+];
+
+let connectedMenu = [
+  {
+    label: `Last Synced: ${lastSynced.toTimeString().substring(0, 8)}`,
+    enabled: false
+  },
+  {
+    label: "Disconnect",
+    enabled: true
+  },
+  {
+    label: "Quit",
+    click() {
+      app.quit();
+    }
+  }
+];
+
 function createWindow() {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({ width: 400, height: 450 });
+  // Create the browser window
+  mainWindow = new BrowserWindow({ width: 400, height: 500 });
 
   // and load the index.html of the app.
   mainWindow.loadFile("index.html");
@@ -43,29 +81,18 @@ app.on("ready", () => {
   tray.setPressedImage(
     path.join(__dirname, "icons_inverted/icons/png/32x32@2x.png")
   );
-  updateMenu([
-    {
-      label: "Connect",
-      click() {
-        createWindow();
-      },
-      enabled: !connected
-    },
-    {
-      label: "Disconnect",
-      enabled: connected
-    },
-    {
-      label: "Quit",
-      click() {
-        app.quit();
-      },
-      accelerator: "CommandOrControl+Q"
-    }
-  ]);
-  tray.on("click", () => {
-    console.log("clicked tray");
-  });
+
+  if (canvasIntegration.isConnected()) {
+    connected = true;
+    updateMenu(connectedMenu);
+  } else {
+    updateMenu(notConnectedMenu);
+  }
+  let minutes = 1;
+  let interval = minutes * 60 * 1000;
+  setInterval(() => {
+    repeatingSyncWithCanvas();
+  }, interval);
 });
 
 // Quit when all windows are closed.
@@ -94,12 +121,15 @@ const chooseDirectory = (exports.chooseDirectory = targetWindow => {
 const syncWithCanvas = (exports.syncWithCanvas = async (
   targetWindow,
   developerKey,
+  schoolCode,
   rootDir
 ) => {
-  let syncResponse = await canvasIntegration.getCanvasCourses(developerKey);
+  let syncResponse = await canvasIntegration.getCanvasCourses(
+    schoolCode,
+    developerKey
+  );
   targetWindow.webContents.send("sync-response", syncResponse);
   if (syncResponse.success) {
-    console.log("got canvas courses");
     targetWindow.hide();
     targetWindow.webContents.send(
       "show-notification",
@@ -107,37 +137,42 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
       "Syncing Now"
     );
     let filesResponse = await canvasIntegration.getCanvasFiles(
+      schoolCode,
       syncResponse.response,
       rootDir
     );
+    connected = true;
     canvasIntegration.saveFileMap();
     lastSynced = new Date(Date.now());
-    console.log(lastSynced.toTimeString());
+
     targetWindow.webContents.send(
       "show-notification",
       "Sync Finished",
       `Files now available at ${rootDir}`
     );
     console.log("Sent notification");
-    connected = true;
-    updateMenu([
-      {
-        label: `Last Synced: ${lastSynced}`,
-        enabled: false
-      },
-      {
-        label: "Disconnect",
-        enabled: connected
-      },
-      {
-        label: "Quit",
-        click() {
-          app.quit();
-        }
-      }
-    ]);
+    updateMenu(connectedMenu);
   }
 });
+
+const repeatingSyncWithCanvas = async () => {
+  let getCanvasCoursesResponse = await canvasIntegration.getCanvasCourses(
+    canvasIntegration.storage.schoolCode,
+    canvasIntegration.storage.developerKey
+  );
+
+  if (getCanvasCoursesResponse.success) {
+    let filesResponse = await canvasIntegration.getCanvasFiles(
+      canvasIntegration.storage.schoolCode,
+      getCanvasCoursesResponse.response,
+      canvasIntegration.storage.syncDir
+    );
+    canvasIntegration.saveFileMap();
+    lastSynced = new Date(Date.now());
+
+    updateMenu(connectedMenu);
+  }
+};
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
@@ -145,11 +180,3 @@ const updateMenu = template => {
   const menu = Menu.buildFromTemplate(template);
   tray.setContextMenu(menu);
 };
-
-// const returnDateMenuItem = () => {
-//   if (lastSynced !== null) {
-//     return { label: `Last Synced: ${lastSynced}`, enabled: false };
-//   } else {
-//     return null;
-//   }
-// };
