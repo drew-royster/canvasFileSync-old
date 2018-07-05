@@ -88,7 +88,7 @@ app.on("ready", () => {
   } else {
     updateMenu(notConnectedMenu);
   }
-  let minutes = 1;
+  let minutes = 0.5;
   let interval = minutes * 60 * 1000;
   setInterval(() => {
     repeatingSyncWithCanvas();

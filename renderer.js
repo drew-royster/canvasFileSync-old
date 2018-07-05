@@ -19,7 +19,7 @@ startButton.addEventListener("click", event => {
     currentWindow,
     devKey.value,
     schoolCode.value,
-    rootDir
+    rootDir[0]
   );
   console.log("finished sync");
 });

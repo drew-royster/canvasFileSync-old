@@ -3,10 +3,11 @@ const request = require("request-promise");
 let storage = (exports.storage = require("./data.json"));
 
 let headers = {};
+let connected = false;
 
 const options = {
   method: "GET",
-  uri: "instructure.com/api/v1/users/self/courses?enrollment_state=active",
+  uri: `instructure.com/api/v1/users/self/courses?enrollment_state=active`,
   headers: headers,
   json: true,
   encoding: null
@@ -20,10 +21,13 @@ const getCanvasCourses = (exports.getCanvasCourses = async (
     storage.schoolCode = schoolCode;
     storage.developerKey = developerKey;
     canvasHeaders = { Authorization: `Bearer ${developerKey}` };
-    options.uri = `https://${schoolCode}.${options.uri}`;
+    if (!connected) {
+      options.uri = `https://${schoolCode}.${options.uri}`;
+      connected = true;
+    }
     options.headers = canvasHeaders;
+    console.log(options);
     let rootResponse = await request(options);
-    // console.log(rootResponse);
     return { success: true, message: "success", response: rootResponse };
   } catch (error) {
     console.log(error);
@@ -42,6 +46,7 @@ const getCanvasFiles = (exports.getCanvasFiles = async (
   rootDir
 ) => {
   try {
+    console.log(rootDir);
     storage.syncDir = rootDir;
     for (let course of courses) {
       console.log("looping through courses");
@@ -108,17 +113,15 @@ const getFileData = async (path, url, page = 1) => {
 
     console.log(filePath);
     console.log(fs.existsSync(filePath));
-    if (!fs.existsSync(filePath)) {
+    if (!fs.existsSync(filePath) || !storage.files.hasOwnProperty(filePath)) {
+      console.log("file doesn't exist or isn't present in data file");
       await request.get(fileDownloadOptions).then(async function(res) {
         const buffer = Buffer.from(res, "utf8");
         await fs.writeFileSync(filePath, buffer);
       });
       storage.files[filePath] = Date.now();
     } else {
-      // let fileStat = await fs.statSync(filePath);
-      // console.log(fileStat);
       let lastCFSUpdate = new Date(storage.files[filePath]);
-
       // let updatedLocally = new Date(fileStat.mtime);
 
       if (updatedOnCanvas > lastCFSUpdate) {
@@ -132,6 +135,7 @@ const getFileData = async (path, url, page = 1) => {
         console.log("no need to update");
       }
     }
+    console.log(options);
   }
   return;
 };
