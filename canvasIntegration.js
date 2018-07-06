@@ -144,7 +144,7 @@ const saveFileMap = (exports.saveFileMap = () => {
       console.error(err);
       return;
     }
-    console.log("File has been created");
+    console.log("Saved data.json");
   });
 });
 

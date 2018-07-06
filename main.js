@@ -41,7 +41,10 @@ const getUpdatedConnectedMenu = newSync => {
     },
     {
       label: "Disconnect",
-      enabled: true
+      enabled: true,
+      click() {
+        disconnect();
+      }
     },
     {
       label: "Quit",
@@ -58,7 +61,10 @@ let connectedMenu = [
   },
   {
     label: "Disconnect",
-    enabled: true
+    enabled: true,
+    click() {
+      disconnect();
+    }
   },
   {
     label: "Quit",
@@ -70,12 +76,15 @@ let connectedMenu = [
 
 function createWindow() {
   // Create the browser window
-  mainWindow = new BrowserWindow({ width: 400, height: 500 });
+  mainWindow = new BrowserWindow({
+    width: 400,
+    height: 500
+  });
 
   // and load the index.html of the app.
   mainWindow.loadFile("index.html");
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();
@@ -109,7 +118,7 @@ app.on("ready", () => {
   let minutes = 0.5;
   let interval = minutes * 60 * 1000;
   setInterval(() => {
-    repeatingSyncWithCanvas();
+    if (connected) repeatingSyncWithCanvas();
   }, interval);
 });
 
@@ -199,4 +208,16 @@ const repeatingSyncWithCanvas = async () => {
 const updateMenu = template => {
   const menu = Menu.buildFromTemplate(template);
   tray.setContextMenu(menu);
+};
+
+const disconnect = () => {
+  console.log("Disconnecting");
+  connected = false;
+  canvasIntegration.storage.syncDir = "";
+  canvasIntegration.storage.files = {};
+  canvasIntegration.storage.schoolCode = "";
+  canvasIntegration.storage.developerKey = "";
+  canvasIntegration.storage.lastUpdated = "";
+  canvasIntegration.saveFileMap();
+  updateMenu(notConnectedMenu);
 };
