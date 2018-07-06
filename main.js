@@ -33,6 +33,24 @@ let notConnectedMenu = [
   }
 ];
 
+const getUpdatedConnectedMenu = newSync => {
+  return [
+    {
+      label: `Last Synced: ${newSync.toTimeString().substring(0, 8)}`,
+      enabled: false
+    },
+    {
+      label: "Disconnect",
+      enabled: true
+    },
+    {
+      label: "Quit",
+      click() {
+        app.quit();
+      }
+    }
+  ];
+};
 let connectedMenu = [
   {
     label: `Last Synced: ${lastSynced.toTimeString().substring(0, 8)}`,
@@ -167,10 +185,12 @@ const repeatingSyncWithCanvas = async () => {
       getCanvasCoursesResponse.response,
       canvasIntegration.storage.syncDir
     );
-    canvasIntegration.saveFileMap();
-    lastSynced = new Date(Date.now());
 
-    updateMenu(connectedMenu);
+    lastSynced = new Date(Date.now());
+    canvasIntegration.storage.lastUpdated = lastSynced;
+    canvasIntegration.saveFileMap();
+
+    updateMenu(getUpdatedConnectedMenu(lastSynced));
   }
 };
 
