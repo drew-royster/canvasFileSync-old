@@ -4,6 +4,7 @@ let storage = (exports.storage = require("./data.json"));
 
 let headers = {};
 let connected = false;
+let numberFiles = 0;
 
 const options = {
   method: "GET",
@@ -118,10 +119,10 @@ const getFileData = async (path, url, page = 1) => {
         const buffer = Buffer.from(res, "utf8");
         await fs.writeFileSync(filePath, buffer);
       });
+      numberFiles++;
       storage.files[filePath] = Date.now();
     } else {
       let lastCFSUpdate = new Date(storage.files[filePath]);
-      // let updatedLocally = new Date(fileStat.mtime);
 
       if (updatedOnCanvas > lastCFSUpdate) {
         console.log("updated on canvas");
@@ -130,6 +131,7 @@ const getFileData = async (path, url, page = 1) => {
           await fs.writeFileSync(filePath, buffer);
         });
         storage.files[filePath] = Date.now();
+        numberFiles++;
       } else {
         console.log("no need to update");
       }
@@ -138,14 +140,16 @@ const getFileData = async (path, url, page = 1) => {
   return;
 };
 
-const saveFileMap = (exports.saveFileMap = () => {
-  fs.writeFile("./data.json", JSON.stringify(storage), err => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    console.log("Saved data.json");
-  });
+const saveFileMap = (exports.saveFileMap = async () => {
+  await fs.writeFileSync("./data.json", JSON.stringify(storage));
+  let filesSynced = numberFiles;
+  console.log(filesSynced);
+  console.log(numberFiles);
+  numberFiles = 0;
+  console.log(filesSynced);
+
+  console.log("Saved data.json");
+  return filesSynced;
 });
 
 const isConnected = (exports.isConnected = () => {

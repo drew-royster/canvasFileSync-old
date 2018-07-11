@@ -4,6 +4,7 @@ const applicationMenu = require("./application-menus");
 const path = require("path");
 const moment = require("moment");
 const canvasIntegration = require("./canvasIntegration");
+require("./crashReporter");
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -84,7 +85,7 @@ function createWindow() {
   // and load the index.html of the app.
   mainWindow.loadFile("index.html");
 
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();
@@ -114,8 +115,9 @@ app.on("ready", () => {
     updateMenu(connectedMenu);
   } else {
     updateMenu(notConnectedMenu);
+    createWindow();
   }
-  let minutes = 0.5;
+  let minutes = 5;
   let interval = minutes * 60 * 1000;
   setInterval(() => {
     if (connected) repeatingSyncWithCanvas();
@@ -158,24 +160,21 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
   targetWindow.webContents.send("sync-response", syncResponse);
   if (syncResponse.success) {
     targetWindow.hide();
-    targetWindow.webContents.send(
-      "show-notification",
-      "Credentials Good",
-      "Syncing Now"
-    );
     let filesResponse = await canvasIntegration.getCanvasFiles(
       schoolCode,
       syncResponse.response,
       rootDir
     );
     connected = true;
-    canvasIntegration.saveFileMap();
+    let numberFiles = await canvasIntegration.saveFileMap();
+    console.log("saved to data.json");
+    console.log(numberFiles);
     lastSynced = new Date(Date.now());
 
     targetWindow.webContents.send(
       "show-notification",
-      "Sync Finished",
-      `Files now available at ${rootDir}`
+      `${numberFiles} files synced`,
+      `Available at ${rootDir}`
     );
     console.log("Sent notification");
     updateMenu(connectedMenu);

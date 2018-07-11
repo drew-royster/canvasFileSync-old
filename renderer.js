@@ -10,18 +10,15 @@ const chooseDirectoryButton = document.querySelector("#chooseDirectory");
 const devKeyError = document.querySelector("#dev-key-error");
 const schoolCode = document.querySelector("#school-code");
 let rootDir = "";
+require("./crashReporter");
 
 startButton.addEventListener("click", event => {
-  console.log("started sync from renderer");
-  console.log(rootDir);
-  console.log(devKey.value);
   mainProcess.syncWithCanvas(
     currentWindow,
     devKey.value,
     schoolCode.value,
     rootDir[0]
   );
-  console.log("finished sync");
 });
 
 chooseDirectoryButton.addEventListener("click", event => {
@@ -34,11 +31,9 @@ ipcRenderer.on("directory-chosen", (event, directory) => {
 });
 
 ipcRenderer.on("sync-response", (event, response) => {
-  console.log(response);
   if (!response.success) {
     devKey.classList.add("is-danger");
     devKey.value = "";
-    console.log(response.message);
     devKeyError.innerHTML = response.message;
   } else {
     devKey.classList.remove("is-danger");
