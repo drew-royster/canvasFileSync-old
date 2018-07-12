@@ -6,9 +6,9 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-packager .",
-    "build-mac": "electron-packager . --overwrite --out=build --icon=icons/mac/icon.icns",
-    "build-windows": "electron-packager . --overwrite --out=build --icon=icons/win/icon.ico",
-    "build-linux": "electron-packager . --overwrite --out=build --icon=icons/png/48x48.png",
+    "build-mac": "electron-packager . --overwrite --out=build --icon=icons_normal/icons/mac/icon.icns",
+    "build-windows": "electron-packager . --overwrite --out=build --icon=icons_normal/icons/win/icon.ico",
+    "build-linux": "electron-packager . --overwrite --out=build --icon=icons_normal/icons/png/48x48.png",
     "test": "echo 'no test specified' && exit 1"
   },
   "repository": "https://github.com/electron/electron-quick-start",
