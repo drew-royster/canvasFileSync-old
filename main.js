@@ -4,6 +4,7 @@ const applicationMenu = require("./application-menus");
 const path = require("path");
 const moment = require("moment");
 const canvasIntegration = require("./canvasIntegration");
+const log = require("electron-log");
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -54,25 +55,25 @@ const getUpdatedConnectedMenu = newSync => {
     }
   ];
 };
-let connectedMenu = [
-  {
-    label: `Last Synced: ${lastSynced.toTimeString().substring(0, 8)}`,
-    enabled: false
-  },
-  {
-    label: "Disconnect",
-    enabled: true,
-    click() {
-      disconnect();
-    }
-  },
-  {
-    label: "Quit",
-    click() {
-      app.quit();
-    }
-  }
-];
+// let connectedMenu = [
+//   {
+//     label: `Last Synced: ${lastSynced.toTimeString().substring(0, 8)}`,
+//     enabled: false
+//   },
+//   {
+//     label: "Disconnect",
+//     enabled: true,
+//     click() {
+//       disconnect();
+//     }
+//   },
+//   {
+//     label: "Quit",
+//     click() {
+//       app.quit();
+//     }
+//   }
+// ];
 
 function createWindow() {
   // Create the browser window
@@ -140,7 +141,7 @@ app.on("activate", function() {
 });
 
 const chooseDirectory = (exports.chooseDirectory = targetWindow => {
-  console.log("choosing directory");
+  log.info("choosing directory");
   const directory = dialog.showOpenDialog({ properties: ["openDirectory"] });
   targetWindow.webContents.send("directory-chosen", directory);
 });
@@ -158,27 +159,21 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
   targetWindow.webContents.send("sync-response", syncResponse);
   if (syncResponse.success) {
     targetWindow.hide();
-    targetWindow.webContents.send(
-      "show-notification",
-      "Credentials Good",
-      "Syncing Now"
-    );
     let filesResponse = await canvasIntegration.getCanvasFiles(
       schoolCode,
       syncResponse.response,
       rootDir
     );
     connected = true;
-    canvasIntegration.saveFileMap();
-    lastSynced = new Date(Date.now());
+    updateDate();
 
     targetWindow.webContents.send(
       "show-notification",
       "Sync Finished",
       `Files now available at ${rootDir}`
     );
-    console.log("Sent notification");
-    updateMenu(connectedMenu);
+    log.info("Sent notification");
+    updateMenu(getUpdatedConnectedMenu(lastSynced));
   }
 });
 
@@ -195,9 +190,7 @@ const repeatingSyncWithCanvas = async () => {
       canvasIntegration.storage.syncDir
     );
 
-    lastSynced = new Date(Date.now());
-    canvasIntegration.storage.lastUpdated = lastSynced;
-    canvasIntegration.saveFileMap();
+    updateDate();
 
     updateMenu(getUpdatedConnectedMenu(lastSynced));
   }
@@ -210,8 +203,14 @@ const updateMenu = template => {
   tray.setContextMenu(menu);
 };
 
+const updateDate = () => {
+  lastSynced = new Date(Date.now());
+  canvasIntegration.storage.lastUpdated = lastSynced;
+  canvasIntegration.saveFileMap();
+};
+
 const disconnect = () => {
-  console.log("Disconnecting");
+  log.info("Disconnecting");
   connected = false;
   canvasIntegration.storage.syncDir = "";
   canvasIntegration.storage.files = {};

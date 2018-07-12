@@ -9,19 +9,19 @@ const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
 const devKeyError = document.querySelector("#dev-key-error");
 const schoolCode = document.querySelector("#school-code");
+const log = require("electron-log");
 let rootDir = "";
 
 startButton.addEventListener("click", event => {
-  console.log("started sync from renderer");
-  console.log(rootDir);
-  console.log(devKey.value);
+  log.info("started sync from renderer");
+  log.info(rootDir);
   mainProcess.syncWithCanvas(
     currentWindow,
     devKey.value,
     schoolCode.value,
     rootDir[0]
   );
-  console.log("finished sync");
+  log.info("finished sync");
 });
 
 chooseDirectoryButton.addEventListener("click", event => {
@@ -34,11 +34,11 @@ ipcRenderer.on("directory-chosen", (event, directory) => {
 });
 
 ipcRenderer.on("sync-response", (event, response) => {
-  console.log(response);
+  log.info(response);
   if (!response.success) {
     devKey.classList.add("is-danger");
     devKey.value = "";
-    console.log(response.message);
+    log.info(response.message);
     devKeyError.innerHTML = response.message;
   } else {
     devKey.classList.remove("is-danger");
