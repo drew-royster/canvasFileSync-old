@@ -150,10 +150,10 @@ const getFileData = async (path, url, page = 1) => {
 const saveFileMap = (exports.saveFileMap = () => {
   fs.writeFile("./data.json", JSON.stringify(storage), err => {
     if (err) {
-      console.error(err);
+      log.error(err);
       return;
     }
-    console.log("Saved data.json");
+    log.info("Saved data.json");
   });
 });
 

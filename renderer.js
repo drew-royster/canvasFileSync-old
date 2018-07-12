@@ -10,6 +10,7 @@ const chooseDirectoryButton = document.querySelector("#chooseDirectory");
 const devKeyError = document.querySelector("#dev-key-error");
 const schoolCode = document.querySelector("#school-code");
 const log = require("electron-log");
+require("./crashReporter");
 let rootDir = "";
 
 startButton.addEventListener("click", event => {

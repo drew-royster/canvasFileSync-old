@@ -5,6 +5,7 @@ const path = require("path");
 const moment = require("moment");
 const canvasIntegration = require("./canvasIntegration");
 const log = require("electron-log");
+require("./crashReporter");
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -55,25 +56,6 @@ const getUpdatedConnectedMenu = newSync => {
     }
   ];
 };
-// let connectedMenu = [
-//   {
-//     label: `Last Synced: ${lastSynced.toTimeString().substring(0, 8)}`,
-//     enabled: false
-//   },
-//   {
-//     label: "Disconnect",
-//     enabled: true,
-//     click() {
-//       disconnect();
-//     }
-//   },
-//   {
-//     label: "Quit",
-//     click() {
-//       app.quit();
-//     }
-//   }
-// ];
 
 function createWindow() {
   // Create the browser window
