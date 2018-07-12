@@ -127,7 +127,6 @@ const getFileData = async (path, url, page = 1) => {
         storage.files[filePath] = Date.now();
       } else {
         let lastCFSUpdate = new Date(storage.files[filePath]);
-        // let updatedLocally = new Date(fileStat.mtime);
 
         if (updatedOnCanvas > lastCFSUpdate) {
           log.info("updated on canvas");
