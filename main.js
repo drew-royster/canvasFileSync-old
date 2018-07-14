@@ -94,7 +94,7 @@ app.on("ready", () => {
 
   if (canvasIntegration.isConnected()) {
     connected = true;
-    updateMenu(connectedMenu);
+    updateMenu(getUpdatedConnectedMenu(lastSynced));
   } else {
     updateMenu(notConnectedMenu);
   }

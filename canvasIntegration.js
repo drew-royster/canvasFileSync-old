@@ -73,8 +73,7 @@ const getCanvasFiles = (exports.getCanvasFiles = async (
 
 const getFolderData = async (folderPath, folderURL) => {
   try {
-    folderOptions = JSON.parse(JSON.stringify(options));
-    folderOptions.uri = folderURL;
+    let folderOptions = getUpdatedOptions(folderURL);
     let folderResponse = await request(folderOptions);
     for (let folder of folderResponse) {
       //course files folder is technically the root folder
@@ -103,8 +102,7 @@ const getFolderData = async (folderPath, folderURL) => {
 
 const getFileData = async (path, url, page = 1) => {
   try {
-    let fileOptions = JSON.parse(JSON.stringify(options));
-    fileOptions.uri = url;
+    let fileOptions = getUpdatedOptions(url);
     let filesResponse = await request(fileOptions);
     if (filesResponse.length === 10) {
       await getFileData(path, `${url}?page=${page + 1}`, page + 1);
@@ -112,8 +110,7 @@ const getFileData = async (path, url, page = 1) => {
 
     for (let file of filesResponse) {
       let updatedOnCanvas = new Date(file.updated_at);
-      let fileDownloadOptions = JSON.parse(JSON.stringify(options));
-      fileDownloadOptions.uri = file.url;
+      let fileDownloadOptions = getUpdatedOptions(file.url);
       let filePath = `${path}/${file.display_name}`;
 
       log.info(filePath);
@@ -168,3 +165,9 @@ const isConnected = (exports.isConnected = () => {
     return false;
   }
 });
+
+const getUpdatedOptions = url => {
+  let updatedOptions = JSON.parse(JSON.stringify(options));
+  updatedOptions.uri = url;
+  return updatedOptions;
+};
