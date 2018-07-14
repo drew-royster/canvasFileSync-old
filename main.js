@@ -85,24 +85,30 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  if (app.dock) app.dock.hide();
-  Menu.setApplicationMenu(applicationMenu);
-  tray = new Tray(path.join(__dirname, "icons_normal/icons/png/32x32@2x.png"));
-  tray.setPressedImage(
-    path.join(__dirname, "icons_inverted/icons/png/32x32@2x.png")
-  );
+  try {
+    if (app.dock) app.dock.hide();
+    Menu.setApplicationMenu(applicationMenu);
+    tray = new Tray(
+      path.join(__dirname, "icons_normal/icons/png/32x32@2x.png")
+    );
+    tray.setPressedImage(
+      path.join(__dirname, "icons_inverted/icons/png/32x32@2x.png")
+    );
 
-  if (canvasIntegration.isConnected()) {
-    connected = true;
-    updateMenu(getUpdatedConnectedMenu(lastSynced));
-  } else {
-    updateMenu(notConnectedMenu);
+    if (canvasIntegration.isConnected()) {
+      connected = true;
+      updateMenu(getUpdatedConnectedMenu(lastSynced));
+    } else {
+      updateMenu(notConnectedMenu);
+    }
+    let minutes = 0.5;
+    let interval = minutes * 60 * 1000;
+    setInterval(() => {
+      if (connected) repeatingSyncWithCanvas();
+    }, interval);
+  } catch (err) {
+    log.error(err);
   }
-  let minutes = 0.5;
-  let interval = minutes * 60 * 1000;
-  setInterval(() => {
-    if (connected) repeatingSyncWithCanvas();
-  }, interval);
 });
 
 // Quit when all windows are closed.
