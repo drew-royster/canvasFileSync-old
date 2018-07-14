@@ -70,7 +70,7 @@ input {
   width: 150px;
 }
 
-#dev-key-error {
+.error-messages {
   color: red;
   align-items: center;
   margin-left: auto;

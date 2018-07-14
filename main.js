@@ -4,6 +4,7 @@ const applicationMenu = require("./application-menus");
 const path = require("path");
 const moment = require("moment");
 const canvasIntegration = require("./canvasIntegration");
+const log = require("electron-log");
 require("./crashReporter");
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -55,25 +56,6 @@ const getUpdatedConnectedMenu = newSync => {
     }
   ];
 };
-let connectedMenu = [
-  {
-    label: `Last Synced: ${lastSynced.toTimeString().substring(0, 8)}`,
-    enabled: false
-  },
-  {
-    label: "Disconnect",
-    enabled: true,
-    click() {
-      disconnect();
-    }
-  },
-  {
-    label: "Quit",
-    click() {
-      app.quit();
-    }
-  }
-];
 
 function createWindow() {
   // Create the browser window
@@ -103,25 +85,30 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  if (app.dock) app.dock.hide();
-  Menu.setApplicationMenu(applicationMenu);
-  tray = new Tray(path.join(__dirname, "icons_normal/icons/png/32x32@2x.png"));
-  tray.setPressedImage(
-    path.join(__dirname, "icons_inverted/icons/png/32x32@2x.png")
-  );
+  try {
+    if (app.dock) app.dock.hide();
+    Menu.setApplicationMenu(applicationMenu);
+    tray = new Tray(
+      path.join(__dirname, "icons_normal/icons/png/32x32@2x.png")
+    );
+    tray.setPressedImage(
+      path.join(__dirname, "icons_inverted/icons/png/32x32@2x.png")
+    );
 
-  if (canvasIntegration.isConnected()) {
-    connected = true;
-    updateMenu(connectedMenu);
-  } else {
-    updateMenu(notConnectedMenu);
-    createWindow();
+    if (canvasIntegration.isConnected()) {
+      connected = true;
+      updateMenu(getUpdatedConnectedMenu(lastSynced));
+    } else {
+      updateMenu(notConnectedMenu);
+    }
+    let minutes = 0.5;
+    let interval = minutes * 60 * 1000;
+    setInterval(() => {
+      if (connected) repeatingSyncWithCanvas();
+    }, interval);
+  } catch (err) {
+    log.error(err);
   }
-  let minutes = 5;
-  let interval = minutes * 60 * 1000;
-  setInterval(() => {
-    if (connected) repeatingSyncWithCanvas();
-  }, interval);
 });
 
 // Quit when all windows are closed.
@@ -142,7 +129,7 @@ app.on("activate", function() {
 });
 
 const chooseDirectory = (exports.chooseDirectory = targetWindow => {
-  console.log("choosing directory");
+  log.info("choosing directory");
   const directory = dialog.showOpenDialog({ properties: ["openDirectory"] });
   targetWindow.webContents.send("directory-chosen", directory);
 });
@@ -166,18 +153,15 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
       rootDir
     );
     connected = true;
-    let numberFiles = await canvasIntegration.saveFileMap();
-    console.log("saved to data.json");
-    console.log(numberFiles);
-    lastSynced = new Date(Date.now());
+    updateDate();
 
     targetWindow.webContents.send(
       "show-notification",
       `${numberFiles} files synced`,
       `Available at ${rootDir}`
     );
-    console.log("Sent notification");
-    updateMenu(connectedMenu);
+    log.info("Sent notification");
+    updateMenu(getUpdatedConnectedMenu(lastSynced));
   }
 });
 
@@ -194,9 +178,7 @@ const repeatingSyncWithCanvas = async () => {
       canvasIntegration.storage.syncDir
     );
 
-    lastSynced = new Date(Date.now());
-    canvasIntegration.storage.lastUpdated = lastSynced;
-    canvasIntegration.saveFileMap();
+    updateDate();
 
     updateMenu(getUpdatedConnectedMenu(lastSynced));
   }
@@ -209,8 +191,14 @@ const updateMenu = template => {
   tray.setContextMenu(menu);
 };
 
+const updateDate = () => {
+  lastSynced = new Date(Date.now());
+  canvasIntegration.storage.lastUpdated = lastSynced;
+  canvasIntegration.saveFileMap();
+};
+
 const disconnect = () => {
-  console.log("Disconnecting");
+  log.info("Disconnecting");
   connected = false;
   canvasIntegration.storage.syncDir = "";
   canvasIntegration.storage.files = {};

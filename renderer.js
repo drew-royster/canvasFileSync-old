@@ -7,18 +7,48 @@ const mainProcess = remote.require("./main.js");
 const devKey = document.querySelector("#developer-key");
 const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
+const chooseDirectoryError = document.querySelector("#choose-directory-error");
 const devKeyError = document.querySelector("#dev-key-error");
+const schoolCodeError = document.querySelector("#school-code-error");
 const schoolCode = document.querySelector("#school-code");
+const log = require("electron-log");
+require("./crashReporter");
 let rootDir = "";
 require("./crashReporter");
 
 startButton.addEventListener("click", event => {
-  mainProcess.syncWithCanvas(
-    currentWindow,
-    devKey.value,
-    schoolCode.value,
-    rootDir[0]
-  );
+  let validConfig = true;
+  //arbitrary number 5. not sure exactly how long it could be
+  if (devKey.value.length < 5) {
+    log.error("Dev Key Invalid");
+    showError(devKey, devKeyError, "Dev Key Invalid");
+    validConfig = false;
+  }
+  if (schoolCode.value.length < 3) {
+    log.error("Invalid School");
+    showError(schoolCode, schoolCodeError, "Invalid School");
+    validConfig = false;
+  }
+  if (
+    chooseDirectoryButton.innerHTML === "Choose Directory" ||
+    chooseDirectoryButton.innerHTML === ""
+  ) {
+    log.error("Invalid Directory");
+    showError(chooseDirectoryButton, chooseDirectoryError, "Invalid Directory");
+    validConfig = false;
+  }
+
+  if (validConfig) {
+    mainProcess.syncWithCanvas(
+      currentWindow,
+      devKey.value,
+      schoolCode.value,
+      rootDir[0]
+    );
+    log.info("finished sync");
+  } else {
+    log.error(`Invalid Configuration`);
+  }
 });
 
 chooseDirectoryButton.addEventListener("click", event => {
@@ -31,10 +61,9 @@ ipcRenderer.on("directory-chosen", (event, directory) => {
 });
 
 ipcRenderer.on("sync-response", (event, response) => {
+  log.info(response);
   if (!response.success) {
-    devKey.classList.add("is-danger");
-    devKey.value = "";
-    devKeyError.innerHTML = response.message;
+    showError(devKey, devKeyError, response.message);
   } else {
     devKey.classList.remove("is-danger");
     devKeyError.innerHTML = "";
@@ -44,3 +73,10 @@ ipcRenderer.on("sync-response", (event, response) => {
 ipcRenderer.on("show-notification", (event, title, body) => {
   const myNotification = new Notification(title, { body }); // #A
 });
+
+const showError = (inputField, errorField, message) => {
+  inputField.classList.add("is-danger");
+  inputField.value = "";
+  log.error(message);
+  errorField.innerHTML = message;
+};
