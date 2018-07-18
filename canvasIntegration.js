@@ -122,7 +122,6 @@ const getFileData = async (path, url, page = 1) => {
           await fs.writeFileSync(filePath, buffer);
         });
         storage.files[filePath] = Date.now();
-        numberFiles++;
       } else {
         let lastCFSUpdate = new Date(storage.files[filePath]);
 

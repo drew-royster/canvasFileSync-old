@@ -35,10 +35,10 @@ let notConnectedMenu = [
   }
 ];
 
-const getUpdatedConnectedMenu = newSync => {
+const getUpdatedConnectedMenu = lastSynced => {
   return [
     {
-      label: `Last Synced: ${newSync.toTimeString().substring(0, 8)}`,
+      label: `Last Synced: ${moment(lastSynced).fromNow()}`,
       enabled: false
     },
     {
@@ -95,13 +95,30 @@ app.on("ready", () => {
       path.join(__dirname, "icons_inverted/icons/png/32x32@2x.png")
     );
 
+    //handles windows
+    tray.on("right-click", async () => {
+      log.info("right clicked on tray");
+      if (connected) {
+        updateMenu(getUpdatedConnectedMenu(lastSynced));
+      }
+    });
+
+    //handles mac
+    tray.on("mouse-enter", async () => {
+      log.info("mouse has entered area");
+      if (connected) {
+        updateMenu(getUpdatedConnectedMenu(lastSynced));
+      }
+    });
+
     if (canvasIntegration.isConnected()) {
       connected = true;
       updateMenu(getUpdatedConnectedMenu(lastSynced));
     } else {
+      createWindow();
       updateMenu(notConnectedMenu);
     }
-    let minutes = 0.5;
+    let minutes = 5;
     let interval = minutes * 60 * 1000;
     setInterval(() => {
       if (connected) repeatingSyncWithCanvas();

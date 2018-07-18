@@ -21,7 +21,7 @@ startButton.addEventListener("click", event => {
   //arbitrary number 5. not sure exactly how long it could be
   if (devKey.value.length < 5) {
     log.error("Dev Key Invalid");
-    showError(devKey, devKeyError, "Dev Key Invalid");
+    showError(devKey, devKeyError, "Invalid Developer Key");
     validConfig = false;
   }
   if (schoolCode.value.length < 3) {
