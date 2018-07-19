@@ -71,7 +71,14 @@ ipcRenderer.on("sync-response", (event, response) => {
 });
 
 ipcRenderer.on("show-notification", (event, title, body) => {
-  const myNotification = new Notification(title, { body }); // #A
+  log.info(`title:${title}`);
+  log.info(`body:${body}`);
+
+  try {
+    const myNotification = new Notification(title, { body }); // #A
+  } catch (err) {
+    log.error(err);
+  }
 });
 
 const showError = (inputField, errorField, message) => {
