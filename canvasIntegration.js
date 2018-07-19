@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const request = require("request-promise");
 let storage = (exports.storage = require("./data.json"));
 const log = require("electron-log");
@@ -51,13 +52,14 @@ const getCanvasFiles = (exports.getCanvasFiles = async (
     storage.syncDir = rootDir;
     for (let course of courses) {
       log.info("looping through courses");
-
-      if (!fs.existsSync(`${rootDir}/${course.name}`)) {
-        fs.mkdirSync(`${rootDir}/${course.name}`);
+      let courseName = course.name.split("|")[0];
+      if (!fs.existsSync(path.join(rootDir,courseName))) {
+        console.log(path.join(rootDir,courseName))
+        fs.mkdirSync(path.join(rootDir,courseName));
       }
 
       await getFolderData(
-        `${rootDir}/${course.name}`,
+        path.join(rootDir,courseName),
         `https://${schoolCode}.instructure.com/api/v1/courses/${
           course.id
         }/folders`
@@ -79,7 +81,7 @@ const getFolderData = async (folderPath, folderURL) => {
       //course files folder is technically the root folder
       let currentFolderPath = "";
       if (folder.name !== "course files") {
-        currentFolderPath = `${folderPath}/${folder.name}`;
+        currentFolderPath = path.join(folderPath,folder.name);
       } else {
         currentFolderPath = folderPath;
       }
@@ -100,18 +102,18 @@ const getFolderData = async (folderPath, folderURL) => {
   return;
 };
 
-const getFileData = async (path, url, page = 1) => {
+const getFileData = async (currentPath, url, page = 1) => {
   try {
     let fileOptions = getUpdatedOptions(url);
     let filesResponse = await request(fileOptions);
     if (filesResponse.length === 10) {
-      await getFileData(path, `${url}?page=${page + 1}`, page + 1);
+      await getFileData(currentPath, `${url}?page=${page + 1}`, page + 1);
     }
 
     for (let file of filesResponse) {
       let updatedOnCanvas = new Date(file.updated_at);
       let fileDownloadOptions = getUpdatedOptions(file.url);
-      let filePath = `${path}/${file.display_name}`;
+      let filePath = path.join(currentPath,file.display_name);
 
       log.info(filePath);
       log.info(fs.existsSync(filePath));

@@ -87,7 +87,7 @@ function createWindow() {
 app.on("ready", () => {
   try {
     if (app.dock) app.dock.hide();
-    Menu.setApplicationMenu(applicationMenu);
+    Menu.setApplicationMenu(null);
     tray = new Tray(
       path.join(__dirname, "icons_normal/icons/png/32x32@2x.png")
     );
@@ -157,29 +157,41 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
   schoolCode,
   rootDir
 ) => {
-  let syncResponse = await canvasIntegration.getCanvasCourses(
-    schoolCode,
-    developerKey
-  );
-  targetWindow.webContents.send("sync-response", syncResponse);
-  if (syncResponse.success) {
-    targetWindow.hide();
-    let filesResponse = await canvasIntegration.getCanvasFiles(
+  try {
+    let syncResponse = await canvasIntegration.getCanvasCourses(
       schoolCode,
-      syncResponse.response,
-      rootDir
+      developerKey
     );
-    connected = true;
-    updateDate();
-
-    targetWindow.webContents.send(
-      "show-notification",
-      `${numberFiles} files synced`,
-      `Available at ${rootDir}`
-    );
-    log.info("Sent notification");
-    updateMenu(getUpdatedConnectedMenu(lastSynced));
+    targetWindow.webContents.send("sync-response", syncResponse);
+    if (syncResponse.success) {
+      targetWindow.hide();
+      log.info("hid window")
+      let filesResponse = await canvasIntegration.getCanvasFiles(
+        schoolCode,
+        syncResponse.response,
+        rootDir
+      );
+  
+      log.info("got canvas files")
+      connected = true;
+      updateDate();
+  
+      log.info("updated the date")
+  
+      targetWindow.webContents.send(
+        "show-notification",
+        `Sync Successful`,
+        `Files available at ${rootDir}`
+      );
+  
+      log.info("Sent notification");
+      updateMenu(getUpdatedConnectedMenu(lastSynced));
+    }
   }
+  catch(err) {
+    log.error(err)
+  }
+  
 });
 
 const repeatingSyncWithCanvas = async () => {
