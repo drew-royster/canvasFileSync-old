@@ -6,6 +6,7 @@ const moment = require("moment");
 const canvasIntegration = require("./canvasIntegration");
 const log = require("electron-log");
 require("./crashReporter");
+if (require("electron-squirrel-startup")) return;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -165,33 +166,31 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
     targetWindow.webContents.send("sync-response", syncResponse);
     if (syncResponse.success) {
       targetWindow.hide();
-      log.info("hid window")
+      log.info("hid window");
       let filesResponse = await canvasIntegration.getCanvasFiles(
         schoolCode,
         syncResponse.response,
         rootDir
       );
-  
-      log.info("got canvas files")
+
+      log.info("got canvas files");
       connected = true;
       updateDate();
-  
-      log.info("updated the date")
-  
+
+      log.info("updated the date");
+
       targetWindow.webContents.send(
         "show-notification",
         `Sync Successful`,
         `Files available at ${rootDir}`
       );
-  
+
       log.info("Sent notification");
       updateMenu(getUpdatedConnectedMenu(lastSynced));
     }
+  } catch (err) {
+    log.error(err);
   }
-  catch(err) {
-    log.error(err)
-  }
-  
 });
 
 const repeatingSyncWithCanvas = async () => {
