@@ -11,16 +11,10 @@ const result = createWindowsInstaller({
     __dirname,
     "../build/Canvas File Sync-win32-x64"
   ),
-  outputDirectory: path.resolve(
-    // E
-    __dirname,
-    "../build/Canvas-File-Sync-win32-x64-installer"
-  ),
   icon: iconPath, // F
   setupIcon: iconPath, // G
-  name: "Canvas File Sync",
-  setupExe: "CanvasFileSync.exe",
-  setupMsi: "CanvasFileSync.msi"
+  name: "CanvasFileSync",
+  exe: "Canvas File Sync.exe"
 });
 result
   .then(() => console.log("Success")) // H
