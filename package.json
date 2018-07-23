@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-packager .",
-    "build-mac": "electron-packager . --platform=darwin --asar --overwrite --out=build --icon=icons_normal/icons/mac/icon.icns",
+    "build-mac": "electron-packager . --platform=darwin --asar --overwrite --app-bundle-id=\"com.drewroyster.canvasfilesync\" --app-verions=\"1.0.0\" --build-version=\"1.0.100\" --osx-sign --out=build --icon=icons_normal/icons/mac/icon.icns",
     "build-windows": "electron-packager . --platform=win32 --asar --overwrite --out=build --icon=icons_normal/icons/win/icon.ico",
     "build-linux": "electron-packager . --platform=linux --asar --overwrite --out=build --icon=icons_normal/icons/png/48x48.png",
     "test": "mocha"
