@@ -1,5 +1,5 @@
 const Application = require("spectron").Application;
-const canvasIntegration = require("../canvasIntegration");
+const canvasIntegration = require("../src/canvasIntegration");
 const assert = require("assert");
 const electronPath = require("electron"); // Require Electron from the binaries included in node_modules.
 const path = require("path");

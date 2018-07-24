@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const request = require("request-promise");
-let storage = (exports.storage = require("./data.json"));
+let storage = (exports.storage = require("../data.json"));
 const log = require("electron-log");
 
 let headers = {};
@@ -53,13 +53,13 @@ const getCanvasFiles = (exports.getCanvasFiles = async (
     for (let course of courses) {
       log.info("looping through courses");
       let courseName = course.name.split("|")[0];
-      if (!fs.existsSync(path.join(rootDir,courseName))) {
-        console.log(path.join(rootDir,courseName))
-        fs.mkdirSync(path.join(rootDir,courseName));
+      if (!fs.existsSync(path.join(rootDir, courseName))) {
+        console.log(path.join(rootDir, courseName));
+        fs.mkdirSync(path.join(rootDir, courseName));
       }
 
       await getFolderData(
-        path.join(rootDir,courseName),
+        path.join(rootDir, courseName),
         `https://${schoolCode}.instructure.com/api/v1/courses/${
           course.id
         }/folders`
@@ -81,7 +81,7 @@ const getFolderData = async (folderPath, folderURL) => {
       //course files folder is technically the root folder
       let currentFolderPath = "";
       if (folder.name !== "course files") {
-        currentFolderPath = path.join(folderPath,folder.name);
+        currentFolderPath = path.join(folderPath, folder.name);
       } else {
         currentFolderPath = folderPath;
       }
@@ -113,7 +113,7 @@ const getFileData = async (currentPath, url, page = 1) => {
     for (let file of filesResponse) {
       let updatedOnCanvas = new Date(file.updated_at);
       let fileDownloadOptions = getUpdatedOptions(file.url);
-      let filePath = path.join(currentPath,file.display_name);
+      let filePath = path.join(currentPath, file.display_name);
 
       log.info(filePath);
       log.info(fs.existsSync(filePath));
@@ -147,7 +147,7 @@ const getFileData = async (currentPath, url, page = 1) => {
 };
 
 const saveFileMap = (exports.saveFileMap = () => {
-  fs.writeFile("./data.json", JSON.stringify(storage), err => {
+  fs.writeFile("../data.json", JSON.stringify(storage), err => {
     if (err) {
       log.error(err);
       return;

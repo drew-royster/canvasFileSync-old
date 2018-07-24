@@ -3,7 +3,8 @@
 // All of the Node.js APIs are available in this process.
 const { remote, ipcRenderer } = require("electron");
 const currentWindow = remote.getCurrentWindow();
-const mainProcess = remote.require("./main.js");
+const path = require("path");
+const mainProcess = remote.require(path.join(__dirname, "../main.js"));
 const devKey = document.querySelector("#developer-key");
 const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
@@ -14,7 +15,7 @@ const schoolCode = document.querySelector("#school-code");
 const log = require("electron-log");
 require("./crashReporter");
 let rootDir = "";
-require("./crashReporter");
+log.info("in renderer");
 
 startButton.addEventListener("click", event => {
   let validConfig = true;
@@ -52,6 +53,7 @@ startButton.addEventListener("click", event => {
 });
 
 chooseDirectoryButton.addEventListener("click", event => {
+  log.info("attempting to choose directory");
   mainProcess.chooseDirectory(currentWindow);
 });
 

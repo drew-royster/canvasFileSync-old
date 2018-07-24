@@ -1,11 +1,11 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, shell, dialog, Tray } = require("electron");
-const applicationMenu = require("./application-menus");
+const applicationMenu = require("./src/application-menus");
 const path = require("path");
 const moment = require("moment");
-const canvasIntegration = require("./canvasIntegration");
+const canvasIntegration = require("./src/canvasIntegration");
 const log = require("electron-log");
-require("./crashReporter");
+require("./src/crashReporter");
 if (require("electron-squirrel-startup")) return;
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -66,12 +66,14 @@ function createWindow() {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile("index.html");
+  mainWindow.loadFile("./src/index.html");
 
   // mainWindow.webContents.openDevTools();
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+  if (process.env.debug === "true") {
+    mainWindow.webContents.openDevTools();
+  }
 
   // Emitted when the window is closed.
   mainWindow.on("closed", function() {
