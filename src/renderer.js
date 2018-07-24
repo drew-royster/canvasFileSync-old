@@ -1,7 +1,7 @@
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
-const { remote, ipcRenderer } = require("electron");
+const { shell, remote, ipcRenderer } = require("electron");
 const currentWindow = remote.getCurrentWindow();
 const path = require("path");
 const mainProcess = remote.require(path.join(__dirname, "../main.js"));
@@ -77,7 +77,13 @@ ipcRenderer.on("show-notification", (event, title, body) => {
   log.info(`body:${body}`);
 
   try {
-    const myNotification = new Notification(title, { body }); // #A
+    const myNotification = new Notification(title, { body });
+    if (title === "Sync Successful") {
+      myNotification.onclick = () => {
+        log.info("clicked on notification");
+        shell.showItemInFolder(rootDir[0]);
+      };
+    }
   } catch (err) {
     log.error(err);
   }

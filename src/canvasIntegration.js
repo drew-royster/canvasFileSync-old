@@ -147,13 +147,21 @@ const getFileData = async (currentPath, url, page = 1) => {
 };
 
 const saveFileMap = (exports.saveFileMap = () => {
-  fs.writeFile("../data.json", JSON.stringify(storage), err => {
-    if (err) {
-      log.error(err);
-      return;
-    }
-    log.info("Saved data.json");
-  });
+  try {
+    fs.writeFile(
+      path.join(__dirname, "../data.json"),
+      JSON.stringify(storage),
+      err => {
+        if (err) {
+          log.error(err);
+          return;
+        }
+        log.info("Saved data.json");
+      }
+    );
+  } catch (err) {
+    log.error(err);
+  }
 });
 
 const isConnected = (exports.isConnected = () => {
