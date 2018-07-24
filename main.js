@@ -88,7 +88,11 @@ function createWindow() {
 app.on("ready", () => {
   try {
     if (app.dock) app.dock.hide();
-    Menu.setApplicationMenu(null);
+    if (process.platform !== "darwin") {
+      Menu.setApplicationMenu(null);
+    } else {
+      Menu.setApplicationMenu(applicationMenu);
+    }
     tray = new Tray(
       path.join(__dirname, "icons_normal/icons/png/32x32@2x.png")
     );
