@@ -204,7 +204,6 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
           let response = await request(options)
           setDevKey(JSON.parse(response).visible_token) 
           targetWindow.loadFile('./src/setup.html')
-          targetWindow.webContents.openDevTools()
         }
       }) 
     }
