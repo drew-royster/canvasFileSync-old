@@ -44,6 +44,13 @@ const getUpdatedConnectedMenu = lastSynced => {
       enabled: false
     },
     {
+      label: "Sync Now",
+      enabled: true,
+      click() {
+        repeatingSyncWithCanvas()
+      }
+    },
+    {
       label: "Disconnect",
       enabled: true,
       click() {
