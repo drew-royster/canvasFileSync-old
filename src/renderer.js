@@ -16,6 +16,7 @@ let rootDir = "";
 log.info("in renderer");
 
 go.addEventListener("click", event => {
+  go.classList.add('is-loading')
   log.info('Renderer: getting auth token')
   // log.info(currentWindow)
   // mainProcess.chooseDirectory(currentWindow)
@@ -26,7 +27,7 @@ go.addEventListener("click", event => {
 startButton.addEventListener("click", event => {
   let validConfig = true;
   if (
-    chooseDirectoryButton.innerHTML === "Choose Directory" ||
+    chooseDirectoryButton.innerHTML === "Choose Folder" ||
     chooseDirectoryButton.innerHTML === ""
   ) {
     log.error("Invalid Directory");
