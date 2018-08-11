@@ -160,7 +160,7 @@ const chooseDirectory = (exports.chooseDirectory = targetWindow => {
 });
 
 const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
-  log.info("getting auth token");
+  log.info('setting school code')
   setSchool(schoolCode)
   let schoolURL = `https://${schoolCode}.instructure.com`
   targetWindow.loadURL(schoolURL)
@@ -204,6 +204,7 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
           let response = await request(options)
           setDevKey(JSON.parse(response).visible_token) 
           targetWindow.loadFile('./src/setup.html')
+          targetWindow.webContents.openDevTools();
         }
       }) 
     }
@@ -212,21 +213,19 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
 
 const syncWithCanvas = (exports.syncWithCanvas = async (
   targetWindow,
-  developerKey,
-  schoolCode,
   rootDir
 ) => {
   try {
     let syncResponse = await canvasIntegration.getCanvasCourses(
-      schoolCode,
-      developerKey
+      canvasIntegration.storage.schoolCode,
+      canvasIntegration.storage.developerKey
     );
     targetWindow.webContents.send("sync-response", syncResponse);
     if (syncResponse.success) {
       targetWindow.hide();
       log.info("hid window");
       let filesResponse = await canvasIntegration.getCanvasFiles(
-        schoolCode,
+        canvasIntegration.storage.schoolCode,
         syncResponse.response,
         rootDir
       );

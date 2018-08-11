@@ -8,20 +8,10 @@ const mainProcess = remote.require(path.join(__dirname, "../main.js"));
 const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
 const chooseDirectoryError = document.querySelector("#choose-directory-error");
-const schoolCode = document.querySelector("#school-code");
-const go = document.querySelector("#go");
 const log = require("electron-log");
 require("./crashReporter");
 let rootDir = "";
 log.info("in renderer");
-
-go.addEventListener("click", event => {
-  log.info('Renderer: getting auth token')
-  // log.info(currentWindow)
-  // mainProcess.chooseDirectory(currentWindow)
-  mainProcess.getAuthToken(currentWindow, schoolCode.value)
-  log.info('got auth token')
-})
 
 startButton.addEventListener("click", event => {
   let validConfig = true;
