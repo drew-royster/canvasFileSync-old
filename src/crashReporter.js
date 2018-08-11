@@ -1,4 +1,5 @@
 const { crashReporter } = require("electron");
+const request = require("request")
 const host = "https://cfs.handsofblue67.com/"; // #A
 const config = {
   productName: "Canvas File Sync",

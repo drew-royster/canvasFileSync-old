@@ -4,30 +4,24 @@
 const { shell, remote, ipcRenderer } = require("electron");
 const currentWindow = remote.getCurrentWindow();
 const path = require("path");
+const canvasIntegration = require("./canvasIntegration");
 const mainProcess = remote.require(path.join(__dirname, "../main.js"));
 const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
+const defaultDirectory = document.querySelector("#defaultDirectory")
 const chooseDirectoryError = document.querySelector("#choose-directory-error");
 const log = require("electron-log");
 require("./crashReporter");
-let rootDir = "";
-log.info("in renderer");
+let rootDir = canvasIntegration.storage.syncDir;
+log.info("in setup");
+defaultDirectory.innerHTML = `Default Directory: ${canvasIntegration.storage.syncDir}`;
 
 startButton.addEventListener("click", event => {
   let validConfig = true;
-  if (
-    chooseDirectoryButton.innerHTML === "Choose Directory" ||
-    chooseDirectoryButton.innerHTML === ""
-  ) {
-    log.error("Invalid Directory");
-    showError(chooseDirectoryButton, chooseDirectoryError, "Invalid Directory");
-    validConfig = false;
-  }
-
   if (validConfig) {
     mainProcess.syncWithCanvas(
       currentWindow,
-      rootDir[0]
+      rootDir
     );
     log.info("finished sync");
   } else {
@@ -42,7 +36,7 @@ chooseDirectoryButton.addEventListener("click", event => {
 
 ipcRenderer.on("directory-chosen", (event, directory) => {
   chooseDirectoryButton.innerHTML = directory;
-  rootDir = directory;
+  rootDir = directory[0];
 });
 
 ipcRenderer.on("sync-response", (event, response) => {
@@ -64,7 +58,7 @@ ipcRenderer.on("show-notification", (event, title, body) => {
     if (title === "Sync Successful") {
       myNotification.onclick = () => {
         log.info("clicked on notification");
-        shell.showItemInFolder(rootDir[0]);
+        shell.showItemInFolder(rootDir);
       };
     }
   } catch (err) {

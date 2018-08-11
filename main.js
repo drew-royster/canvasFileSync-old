@@ -89,7 +89,6 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  console.log(app.getPath('documents'))
   try {
     if (app.dock) app.dock.hide();
     if (process.platform !== "darwin") {
@@ -161,6 +160,9 @@ const chooseDirectory = (exports.chooseDirectory = targetWindow => {
 });
 
 const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
+  canvasIntegration.storage.syncDir = app.getPath("documents")
+  canvasIntegration.saveFileMap()
+  log.info(canvasIntegration.storage.syncDir)
   log.info('setting school code')
   setSchool(schoolCode)
   let schoolURL = `https://${schoolCode}.instructure.com`
@@ -175,16 +177,13 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
         let authenticity_token = ''
         let canvas_session_token = ''
         let purpose = 'canvasFileSync'
-        console.log(longTermToken)
         if (longTermToken === '') {
           for (let cookie of cookies) { 
             if (cookie.name === '_csrf_token') {
               authenticity_token = cookie.value
-              console.log(authenticity_token)
             }
             if (cookie.name === 'canvas_session') {
               canvas_session_token = cookie.value
-              console.log(canvas_session_token)
             }
           }
           var options = { 
@@ -205,6 +204,7 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
           let response = await request(options)
           setDevKey(JSON.parse(response).visible_token) 
           targetWindow.loadFile('./src/setup.html')
+          targetWindow.webContents.openDevTools()
         }
       }) 
     }
