@@ -15,14 +15,24 @@ require("./crashReporter");
 let rootDir = "";
 log.info("in renderer");
 
+
+schoolCode.addEventListener('keypress', function (e) {
+  var key = e.which || e.keyCode;
+  if (key === 13) { // 13 is enter
+    goLogin()
+  }
+});
+
 go.addEventListener("click", event => {
+  goLogin()
+})
+
+const goLogin = () => {
   go.classList.add('is-loading')
   log.info('Renderer: getting auth token')
-  // log.info(currentWindow)
-  // mainProcess.chooseDirectory(currentWindow)
   mainProcess.getAuthToken(currentWindow, schoolCode.value)
   log.info('got auth token')
-})
+}
 
 startButton.addEventListener("click", event => {
   let validConfig = true;
