@@ -1,5 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, shell, dialog, Tray } = require("electron");
+const request = require('request-promise')
 const applicationMenu = require("./src/application-menus");
 const path = require("path");
 const moment = require("moment");
@@ -61,12 +62,12 @@ const getUpdatedConnectedMenu = lastSynced => {
 function createWindow() {
   // Create the browser window
   mainWindow = new BrowserWindow({
-    width: 400,
-    height: 500
+    width: 800,
+    height: 600
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile("./src/index.html");
+  mainWindow.loadFile("./src/login.html");
 
   // mainWindow.webContents.openDevTools();
 
@@ -158,6 +159,57 @@ const chooseDirectory = (exports.chooseDirectory = targetWindow => {
   targetWindow.webContents.send("directory-chosen", directory);
 });
 
+const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
+  log.info("getting auth token");
+  setSchool(schoolCode)
+  let schoolURL = `https://${schoolCode}.instructure.com`
+  targetWindow.loadURL(schoolURL)
+  let mainSession = targetWindow.webContents.session
+  let longTermToken = ''
+
+  targetWindow.on('page-title-updated', async function(event, pageTitle) {
+    if (pageTitle === "Dashboard") {
+      log.info('in canvas now creating auth token')
+      mainSession.cookies.get({}, async (error, cookies) => {
+        let authenticity_token = ''
+        let canvas_session_token = ''
+        let purpose = 'canvasFileSync'
+        console.log(longTermToken)
+        if (longTermToken === '') {
+          for (let cookie of cookies) { 
+            if (cookie.name === '_csrf_token') {
+              authenticity_token = cookie.value
+              console.log(authenticity_token)
+            }
+            if (cookie.name === 'canvas_session') {
+              canvas_session_token = cookie.value
+              console.log(canvas_session_token)
+            }
+          }
+          var options = { 
+            method: 'POST',
+            url: `https://${schoolCode}.instructure.com/profile/tokens`,
+            headers: 
+            { 
+              'Cache-Control': 'no-cache',
+              'X-Requested-With': 'XMLHttpRequest',
+              Accept: 'application/json, text/javascript, application/json+canvas-string-ids, */*; q=0.01',
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+              'X-CSRF-Token': authenticity_token,
+              Cookie: `canvas_session=${canvas_session_token}; _csrf_token=${authenticity_token}` 
+            },
+            body: `authenticity_token=${authenticity_token}&access_token%5Bpurpose%5D=${purpose}` 
+          };
+  
+          let response = await request(options)
+          setDevKey(JSON.parse(response).visible_token) 
+          targetWindow.loadFile('./src/setup.html')
+        }
+      }) 
+    }
+  })
+});
+
 const syncWithCanvas = (exports.syncWithCanvas = async (
   targetWindow,
   developerKey,
@@ -224,6 +276,16 @@ const updateMenu = template => {
   const menu = Menu.buildFromTemplate(template);
   tray.setContextMenu(menu);
 };
+
+const setSchool = schoolCode => {
+  canvasIntegration.storage.schoolCode = schoolCode;
+  canvasIntegration.saveFileMap();
+}
+
+const setDevKey = developerKey => {
+  canvasIntegration.storage.developerKey = developerKey;
+  canvasIntegration.saveFileMap();
+}
 
 const updateDate = () => {
   lastSynced = new Date(Date.now());

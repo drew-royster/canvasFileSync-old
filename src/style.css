@@ -70,6 +70,16 @@ input {
   width: 150px;
 }
 
+#go {
+  background-color: #f7931e;
+  margin-top: 1%;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  width: 150px;
+}
+
 .error-messages {
   color: red;
   align-items: center;
@@ -84,4 +94,15 @@ input {
   margin-left: auto;
   margin-right: auto;
   display: block;
+}
+
+.instructions {
+  margin-top: 1%;
+  width: 275px;
+  align-items: center;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  font-size: 36px;
 }

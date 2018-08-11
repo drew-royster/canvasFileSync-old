@@ -12,50 +12,59 @@ const chooseDirectoryError = document.querySelector("#choose-directory-error");
 const devKeyError = document.querySelector("#dev-key-error");
 const schoolCodeError = document.querySelector("#school-code-error");
 const schoolCode = document.querySelector("#school-code");
+const go = document.querySelector("#go");
 const log = require("electron-log");
 require("./crashReporter");
 let rootDir = "";
 log.info("in renderer");
 
-startButton.addEventListener("click", event => {
-  let validConfig = true;
-  //arbitrary number 5. not sure exactly how long it could be
-  if (devKey.value.length < 5) {
-    log.error("Dev Key Invalid");
-    showError(devKey, devKeyError, "Invalid Developer Key");
-    validConfig = false;
-  }
-  if (schoolCode.value.length < 3) {
-    log.error("Invalid School");
-    showError(schoolCode, schoolCodeError, "Invalid School");
-    validConfig = false;
-  }
-  if (
-    chooseDirectoryButton.innerHTML === "Choose Directory" ||
-    chooseDirectoryButton.innerHTML === ""
-  ) {
-    log.error("Invalid Directory");
-    showError(chooseDirectoryButton, chooseDirectoryError, "Invalid Directory");
-    validConfig = false;
-  }
+go.addEventListener("click", event => {
+  log.info('Renderer: getting auth token')
+  // log.info(currentWindow)
+  // mainProcess.chooseDirectory(currentWindow)
+  mainProcess.getAuthToken(currentWindow, schoolCode.value)
+  log.info('got auth token')
+})
 
-  if (validConfig) {
-    mainProcess.syncWithCanvas(
-      currentWindow,
-      devKey.value,
-      schoolCode.value,
-      rootDir[0]
-    );
-    log.info("finished sync");
-  } else {
-    log.error(`Invalid Configuration`);
-  }
-});
+// startButton.addEventListener("click", event => {
+//   let validConfig = true;
+//   //arbitrary number 5. not sure exactly how long it could be
+//   if (devKey.value.length < 5) {
+//     log.error("Dev Key Invalid");
+//     showError(devKey, devKeyError, "Invalid Developer Key");
+//     validConfig = false;
+//   }
+//   if (schoolCode.value.length < 3) {
+//     log.error("Invalid School");
+//     showError(schoolCode, schoolCodeError, "Invalid School");
+//     validConfig = false;
+//   }
+//   if (
+//     chooseDirectoryButton.innerHTML === "Choose Directory" ||
+//     chooseDirectoryButton.innerHTML === ""
+//   ) {
+//     log.error("Invalid Directory");
+//     showError(chooseDirectoryButton, chooseDirectoryError, "Invalid Directory");
+//     validConfig = false;
+//   }
 
-chooseDirectoryButton.addEventListener("click", event => {
-  log.info("attempting to choose directory");
-  mainProcess.chooseDirectory(currentWindow);
-});
+//   if (validConfig) {
+//     mainProcess.syncWithCanvas(
+//       currentWindow,
+//       devKey.value,
+//       schoolCode.value,
+//       rootDir[0]
+//     );
+//     log.info("finished sync");
+//   } else {
+//     log.error(`Invalid Configuration`);
+//   }
+// });
+
+// chooseDirectoryButton.addEventListener("click", event => {
+//   log.info("attempting to choose directory");
+//   mainProcess.chooseDirectory(currentWindow);
+// });
 
 ipcRenderer.on("directory-chosen", (event, directory) => {
   chooseDirectoryButton.innerHTML = directory;
