@@ -130,8 +130,9 @@ app.on("ready", () => {
       connected = true;
       updateMenu(getUpdatedConnectedMenu(lastSynced));
     } else {
-      createWindow();
       updateMenu(notConnectedMenu);
+      // A bug is causing this window to immediately disappear.
+      // createWindow();
     }
     let minutes = 5;
     let interval = minutes * 60 * 1000;
@@ -167,9 +168,9 @@ const chooseDirectory = (exports.chooseDirectory = targetWindow => {
 });
 
 const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
-  canvasIntegration.storage.syncDir = app.getPath("documents")
-  canvasIntegration.saveFileMap()
-  log.info(canvasIntegration.storage.syncDir)
+  // canvasIntegration.storage.syncDir = app.getPath("documents")
+  // canvasIntegration.saveFileMap()
+  // log.info(canvasIntegration.storage.syncDir)
   log.info('setting school code')
   setSchool(schoolCode)
   let schoolURL = `https://${schoolCode}.instructure.com`

@@ -14,10 +14,15 @@ const log = require("electron-log");
 require("./crashReporter");
 let rootDir = canvasIntegration.storage.syncDir;
 log.info("in setup");
-defaultDirectory.innerHTML = `Default Directory: ${canvasIntegration.storage.syncDir}`;
 
 startButton.addEventListener("click", event => {
   let validConfig = true;
+  if (chooseDirectoryButton.innerHTML === "Choose Folder" ||
+      chooseDirectoryButton.innerHTML === "") {
+        log.error("Invalid Directory");
+        showError(chooseDirectoryButton, chooseDirectoryError, "Invalid Directory");
+        validConfig = false;
+  }
   if (validConfig) {
     mainProcess.syncWithCanvas(
       currentWindow,

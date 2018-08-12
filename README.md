@@ -10,44 +10,18 @@ Clone this repository and run `npm i`. Once it's done installing the modules, ru
 
 ## Getting Started
 
-CFS uses a user generated token to authorize itself to download files on your behalf. To get this token you need to login to Canvas.
+Click on CFS icon and then `Connect`
 
-Once logged in, click on your `icon`.
+![alt text](https://media.giphy.com/media/5bmF0WnaHqtHsqCGvz/giphy.gif "Click on Connect")
 
-![alt text](readme_assets/click_face.png "Click on Face")
+Enter your school as it appears in the instructure link e.g. `https://uvu.instructure.com` 
 
-Click on `settings`
+![alt text](https://media.giphy.com/media/jyGY5USB37zulErw8Z/giphy.gif "School")
 
-![alt text](readme_assets/click_settings.png "Click Settings")
+Login to canvas
 
-Scroll down to this section and click `New Token`
+![alt text](https://media.giphy.com/media/3fhXi5eMrTtpTrZfJJ/giphy.gif "Login to Canvas")
 
-![alt text](readme_assets/click_new_access_token.png "Click Access Token")
+Choose the folder you'd like to sync to
 
-Write a small purpose(doesn't matter what it says) and click `Generate Token`
-
-![alt text](readme_assets/click_generate_token.png "Generate Token")
-
-Copy the following highlighted token(don't share it with anyone)
-
-![alt text](readme_assets/copy_token.png "Copy Token")
-
-## Installing CFS
-
-Installing CFS should behave as any normal program and following it's installation you should see the following logo in your top `menubar` on Mac and bottom `tray` on Windows.
-
-![alt text](icons_normal/icons/png/64x64.png "Logo")
-
-Click the `icon` then click `Connect`
-
-Fill out the form when this screen appears.
-
-![alt text](readme_assets/connect.png "Connect Screen")
-
-The `School` field is what appears before `.instructure.com` in your browser when you are logged into Canvas.
-
-The `Developer Key` is what you just copied.
-
-The `Sync Directory` is where you would like your course files to be synced.
-
-After clicking `Sync`, check the folder you chose and your files should be there.
+![alt text](https://media.giphy.com/media/5wG5eUinoFpqzBvbo4/giphy.gif "Choose folder")

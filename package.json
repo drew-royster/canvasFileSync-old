@@ -33,7 +33,6 @@
     "spectron": "^3.8.0"
   },
   "dependencies": {
-    "bulma": "^0.7.1",
     "electron-log": "^2.2.16",
     "electron-squirrel-startup": "^1.0.0",
     "moment": "^2.22.2",
