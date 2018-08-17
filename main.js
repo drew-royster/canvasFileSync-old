@@ -66,7 +66,7 @@ const getUpdatedConnectedMenu = lastSynced => {
   ];
 };
 
-function createWindow() {
+const createWindow = (exports.createWindow = () => {
   // Create the browser window
   mainWindow = new BrowserWindow({
     width: 800,
@@ -90,7 +90,7 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
-}
+})
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
