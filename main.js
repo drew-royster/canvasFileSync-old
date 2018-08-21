@@ -37,6 +37,24 @@ let notConnectedMenu = [
   }
 ];
 
+let connectingMenu = [
+  {
+    label: "Syncing...",
+    enabled: false
+  },
+  {
+    label: "Disconnect",
+    enabled: false
+  },
+  {
+    label: "Quit",
+    click() {
+      app.quit();
+    },
+    accelerator: "CommandOrControl+Q"
+  }
+];
+
 const getUpdatedConnectedMenu = lastSynced => {
   return [
     {
@@ -223,6 +241,7 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
   rootDir
 ) => {
   try {
+    updateMenu(connectingMenu);
     let syncResponse = await canvasIntegration.getCanvasCourses(
       canvasIntegration.storage.schoolCode,
       canvasIntegration.storage.developerKey
