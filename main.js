@@ -6,6 +6,8 @@ const path = require("path");
 const moment = require("moment");
 const canvasIntegration = require("./src/canvasIntegration");
 const log = require("electron-log");
+const Store = require('electron-store');
+const store = new Store();
 require("./src/crashReporter");
 if (require("electron-squirrel-startup")) return;
 
@@ -13,7 +15,7 @@ if (require("electron-squirrel-startup")) return;
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 let tray = null;
-let lastSynced = new Date(canvasIntegration.storage.lastUpdated);
+let lastSynced = new Date(store.get('lastUpdated'));
 let connected = false;
 
 let notConnectedMenu = [
@@ -188,11 +190,8 @@ const chooseDirectory = (exports.chooseDirectory = targetWindow => {
 });
 
 const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
-  // canvasIntegration.storage.syncDir = app.getPath("documents")
-  // canvasIntegration.saveFileMap()
-  // log.info(canvasIntegration.storage.syncDir)
   log.info('setting school code')
-  setSchool(schoolCode)
+  store.set("schoolCode", schoolCode);
   let schoolURL = `https://${schoolCode}.instructure.com`
   targetWindow.loadURL(schoolURL)
   let mainSession = targetWindow.webContents.session
@@ -230,7 +229,7 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
           };
   
           let response = await request(options)
-          setDevKey(JSON.parse(response).visible_token) 
+          store.set("developerKey", JSON.parse(response).visible_token) 
           targetWindow.loadFile('./src/setup.html')
         }
       }) 
@@ -245,15 +244,15 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
   try {
     updateMenu(connectingMenu);
     let syncResponse = await canvasIntegration.getCanvasCourses(
-      canvasIntegration.storage.schoolCode,
-      canvasIntegration.storage.developerKey
+      store.get("schoolCode"),
+      store.get("developerKey")
     );
     targetWindow.webContents.send("sync-response", syncResponse);
     if (syncResponse.success) {
       targetWindow.hide();
       log.info("hid window");
       let filesResponse = await canvasIntegration.getCanvasFiles(
-        canvasIntegration.storage.schoolCode,
+        store.get("schoolCode"),
         syncResponse.response,
         rootDir
       );
@@ -280,15 +279,15 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
 
 const repeatingSyncWithCanvas = async () => {
   let getCanvasCoursesResponse = await canvasIntegration.getCanvasCourses(
-    canvasIntegration.storage.schoolCode,
-    canvasIntegration.storage.developerKey
+    store.get("schoolCode"),
+    store.get("developerKey")
   );
 
   if (getCanvasCoursesResponse.success) {
     let filesResponse = await canvasIntegration.getCanvasFiles(
-      canvasIntegration.storage.schoolCode,
+      store.get("schoolCode"),
       getCanvasCoursesResponse.response,
-      canvasIntegration.storage.syncDir
+      store.get("syncDir")
     );
 
     updateDate();
@@ -304,30 +303,18 @@ const updateMenu = template => {
   tray.setContextMenu(menu);
 };
 
-const setSchool = schoolCode => {
-  canvasIntegration.storage.schoolCode = schoolCode;
-  canvasIntegration.saveFileMap();
-}
-
-const setDevKey = developerKey => {
-  canvasIntegration.storage.developerKey = developerKey;
-  canvasIntegration.saveFileMap();
-}
-
 const updateDate = () => {
   lastSynced = new Date(Date.now());
-  canvasIntegration.storage.lastUpdated = lastSynced;
-  canvasIntegration.saveFileMap();
+  store.set("lastUpdated", lastSynced);
 };
 
 const disconnect = () => {
   log.info("Disconnecting");
   connected = false;
-  canvasIntegration.storage.syncDir = "";
-  canvasIntegration.storage.files = {};
-  canvasIntegration.storage.schoolCode = "";
-  canvasIntegration.storage.developerKey = "";
-  canvasIntegration.storage.lastUpdated = "";
-  canvasIntegration.saveFileMap();
+  store.delete("syncDir");
+  store.delete("files", {});
+  store.delete("schoolCode");
+  store.delete("developerKey");
+  store.delete("lastUpdated");
   updateMenu(notConnectedMenu);
 };

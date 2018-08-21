@@ -1,25 +1,14 @@
 const fs = require("fs");
 const path = require("path");
 const request = require("request-promise");
-const Store = require('./store.js')
-let storage = (exports.storage = require("../data.json"));
+// let storage = (exports.storage = require("../data.json"));
 const log = require("electron-log");
+const Store = require('electron-store');
+const store = new Store();
 
 let headers = {};
 let connected = false;
 let syncResponse = {};
-
-const store = (exports.store = new Store({
-  // We'll call our data file 'user-preferences'
-  configName: 'data',
-  defaults: {
-    schoolCode:"",
-    developerKey:"",
-    lastUpdated:"",
-    syncDir:"",
-    files:{}
-  }
-}))
 
 const options = {
   method: "GET",
@@ -34,8 +23,8 @@ const getCanvasCourses = (exports.getCanvasCourses = async (
   developerKey
 ) => {
   try {
-    storage.schoolCode = schoolCode;
-    storage.developerKey = developerKey;
+    store.set("schoolCode", schoolCode);
+    store.set("developerKey", developerKey);
     canvasHeaders = { Authorization: `Bearer ${developerKey}` };
     if (!connected) {
       options.uri = `https://${schoolCode}.${options.uri}`;
@@ -62,7 +51,7 @@ const getCanvasFiles = (exports.getCanvasFiles = async (
 ) => {
   try {
     log.info(rootDir);
-    storage.syncDir = rootDir;
+    store.set("syncDir", rootDir);
     for (let course of courses) {
       log.info("looping through courses");
       let courseName = course.name.split("|")[0];
@@ -130,15 +119,15 @@ const getFileData = async (currentPath, url, page = 1) => {
 
       log.info(filePath);
       log.info(fs.existsSync(filePath));
-      if (!fs.existsSync(filePath) || !storage.files.hasOwnProperty(filePath)) {
+      if (!fs.existsSync(filePath) || !store.get("files").hasOwnProperty(filePath)) {
         log.info("file doesn't exist or isn't present in data file");
         await request.get(fileDownloadOptions).then(async function(res) {
           const buffer = Buffer.from(res, "utf8");
           await fs.writeFileSync(filePath, buffer);
         });
-        storage.files[filePath] = Date.now();
+        store.set(`files.${filePath}`, Date.now());
       } else {
-        let lastCFSUpdate = new Date(storage.files[filePath]);
+        let lastCFSUpdate = new Date(store.get(`files.${filePath}`));
 
         if (updatedOnCanvas > lastCFSUpdate) {
           log.info("updated on canvas");
@@ -146,7 +135,7 @@ const getFileData = async (currentPath, url, page = 1) => {
             const buffer = Buffer.from(res, "utf8");
             await fs.writeFileSync(filePath, buffer);
           });
-          storage.files[filePath] = Date.now();
+          store.set(`files.${filePath}`, Date.now());
         } else {
           log.info("no need to update");
         }
@@ -159,33 +148,39 @@ const getFileData = async (currentPath, url, page = 1) => {
   return;
 };
 
-const saveFileMap = (exports.saveFileMap = () => {
-  try {
-    fs.writeFile(
-      path.join(__dirname, "../data.json"),
-      JSON.stringify(storage),
-      err => {
-        if (err) {
-          log.error(err);
-          return;
-        }
-        log.info("Saved data.json");
-      }
-    );
-  } catch (err) {
-    log.error(err);
-  }
-});
+// const saveFileMap = (exports.saveFileMap = () => {
+//   try {
+//     fs.writeFile(
+//       path.join(__dirname, "../data.json"),
+//       JSON.stringify(storage),
+//       err => {
+//         if (err) {
+//           log.error(err);
+//           return;
+//         }
+//         log.info("Saved data.json");
+//       }
+//     );
+//   } catch (err) {
+//     log.error(err);
+//   }
+// });
 
 const isConnected = (exports.isConnected = () => {
-  if (
-    storage.syncDir !== "" &&
-    storage.schoolCode !== "" &&
-    storage.developerKey !== ""
-  ) {
-    return true;
-  } else {
-    return false;
+  try {
+    if (
+      store.get('syncDir') !== undefined &&
+      store.get('schoolCode') !== undefined &&
+      store.get('developerKey') !== undefined
+    ) {
+      log.info(store.get('syncDir'))
+      return true;
+    } else {
+      return false;
+    }
+  }
+  catch (err) {
+    log.error(err)
   }
 });
 
