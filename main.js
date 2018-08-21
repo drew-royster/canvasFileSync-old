@@ -42,6 +42,7 @@ let notConnectedMenu = [
 let connectingMenu = [
   {
     label: "Syncing...",
+    icon: './loading.png',
     enabled: false
   },
   {
@@ -191,6 +192,7 @@ const chooseDirectory = (exports.chooseDirectory = targetWindow => {
 
 const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
   log.info('setting school code')
+  store.set("files", {});
   store.set("schoolCode", schoolCode);
   let schoolURL = `https://${schoolCode}.instructure.com`
   targetWindow.loadURL(schoolURL)

@@ -10,9 +10,11 @@ const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
 const defaultDirectory = document.querySelector("#defaultDirectory")
 const chooseDirectoryError = document.querySelector("#choose-directory-error");
+const Store = require('electron-store');
+const store = new Store();
 const log = require("electron-log");
 require("./crashReporter");
-let rootDir = canvasIntegration.storage.syncDir;
+let rootDir = store.get("syncDir");
 log.info("in setup");
 
 startButton.addEventListener("click", event => {

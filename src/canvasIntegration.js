@@ -120,7 +120,7 @@ const getFileData = async (currentPath, url, page = 1) => {
       log.info(filePath);
       log.info(fs.existsSync(filePath));
       if (!fs.existsSync(filePath) || !store.get("files").hasOwnProperty(filePath)) {
-        log.info("file doesn't exist or isn't present in data file");
+        log.info(`${filePath} doesn't exist or isn't present in data file`);
         await request.get(fileDownloadOptions).then(async function(res) {
           const buffer = Buffer.from(res, "utf8");
           await fs.writeFileSync(filePath, buffer);
