@@ -252,6 +252,11 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
     targetWindow.webContents.send("sync-response", syncResponse);
     if (syncResponse.success) {
       targetWindow.hide();
+      targetWindow.webContents.send(
+        "show-notification",
+        `Starting Sync`,
+        `First sync may take a while...`
+      );
       log.info("hid window");
       let filesResponse = await canvasIntegration.getCanvasFiles(
         store.get("schoolCode"),
@@ -280,21 +285,28 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
 });
 
 const repeatingSyncWithCanvas = async () => {
-  let getCanvasCoursesResponse = await canvasIntegration.getCanvasCourses(
-    store.get("schoolCode"),
-    store.get("developerKey")
-  );
-
-  if (getCanvasCoursesResponse.success) {
-    let filesResponse = await canvasIntegration.getCanvasFiles(
+  try {
+    log.info("setting menu to connecting menu")
+    updateMenu(connectingMenu);
+    log.info("set menu to connecting menu")
+    let getCanvasCoursesResponse = await canvasIntegration.getCanvasCourses(
       store.get("schoolCode"),
-      getCanvasCoursesResponse.response,
-      store.get("syncDir")
+      store.get("developerKey")
     );
-
-    updateDate();
-
-    updateMenu(getUpdatedConnectedMenu(lastSynced));
+  
+    if (getCanvasCoursesResponse.success) {
+      let filesResponse = await canvasIntegration.getCanvasFiles(
+        store.get("schoolCode"),
+        getCanvasCoursesResponse.response,
+        store.get("syncDir")
+      );
+  
+      updateDate();
+      log.info("setting menu to connected menu")
+      updateMenu(getUpdatedConnectedMenu(lastSynced));
+    }
+  } catch(err) {
+    log.error(err)
   }
 };
 
