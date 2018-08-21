@@ -42,7 +42,7 @@ let notConnectedMenu = [
 let connectingMenu = [
   {
     label: "Syncing...",
-    icon: './loading.png',
+    icon: path.join(__dirname, "icons_normal/loading.png"),
     enabled: false
   },
   {
