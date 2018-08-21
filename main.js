@@ -165,7 +165,7 @@ app.on("ready", () => {
   }
 });
 
-app.setLoginItemSettings({openAtLogin: true})
+app.setLoginItemSettings({openAtLogin: true, openAsHidden: true})
 
 // Quit when all windows are closed.
 app.on("window-all-closed", function() {
