@@ -1,12 +1,25 @@
 const fs = require("fs");
 const path = require("path");
 const request = require("request-promise");
+const Store = require('./store.js')
 let storage = (exports.storage = require("../data.json"));
 const log = require("electron-log");
 
 let headers = {};
 let connected = false;
 let syncResponse = {};
+
+const store = (exports.store = new Store({
+  // We'll call our data file 'user-preferences'
+  configName: 'data',
+  defaults: {
+    schoolCode:"",
+    developerKey:"",
+    lastUpdated:"",
+    syncDir:"",
+    files:{}
+  }
+}))
 
 const options = {
   method: "GET",
