@@ -295,12 +295,16 @@ const repeatingSyncWithCanvas = async () => {
     );
   
     if (getCanvasCoursesResponse.success) {
-      let filesResponse = await canvasIntegration.getCanvasFiles(
-        store.get("schoolCode"),
-        getCanvasCoursesResponse.response,
-        store.get("syncDir")
-      );
-  
+      if(await canvasIntegration.newFilesExist(getCanvasCoursesResponse.response)) {
+        log.info('new files exist')
+        let filesResponse = await canvasIntegration.getCanvasFiles(
+          store.get("schoolCode"),
+          getCanvasCoursesResponse.response,
+          store.get("syncDir")
+        );
+      } else {
+        log.info('no new files exist')
+      }
       updateDate();
       log.info("setting menu to connected menu")
       updateMenu(getUpdatedConnectedMenu(lastSynced));

@@ -53,19 +53,21 @@ const getCanvasFiles = (exports.getCanvasFiles = async (
     log.info(rootDir);
     store.set("syncDir", rootDir);
     for (let course of courses) {
-      log.info("looping through courses");
-      let courseName = course.name.split("|")[0];
-      if (!fs.existsSync(path.join(rootDir, courseName))) {
-        console.log(path.join(rootDir, courseName));
-        fs.mkdirSync(path.join(rootDir, courseName));
+      log.info(`${course.name}\n`);
+      if (await hasAccessToFilesAPI(course.id)) {
+        let courseName = course.name.split("|")[0];
+        if (!fs.existsSync(path.join(rootDir, courseName))) {
+          console.log(path.join(rootDir, courseName));
+          fs.mkdirSync(path.join(rootDir, courseName));
+        }
+  
+        await getFolderData(
+          path.join(rootDir, courseName),
+          `https://${schoolCode}.instructure.com/api/v1/courses/${
+            course.id
+          }/folders`
+        );
       }
-
-      await getFolderData(
-        path.join(rootDir, courseName),
-        `https://${schoolCode}.instructure.com/api/v1/courses/${
-          course.id
-        }/folders`
-      );
     }
   } catch (error) {
     log.error(error);
@@ -82,6 +84,7 @@ const getFolderData = async (folderPath, folderURL) => {
     for (let folder of folderResponse) {
       //course files folder is technically the root folder
       let currentFolderPath = "";
+      log.info(`${folder.name} updated recently getting new files`)
       if (folder.name !== "course files") {
         currentFolderPath = path.join(folderPath, folder.name);
       } else {
@@ -95,7 +98,6 @@ const getFolderData = async (folderPath, folderURL) => {
       if (folder.folders_count !== 0 && folder.name !== "course files") {
         await getFolderData(currentFolderPath, folder.folders_url);
       }
-
       await getFileData(currentFolderPath, folder.files_url);
     }
   } catch (error) {
@@ -116,18 +118,19 @@ const getFileData = async (currentPath, url, page = 1) => {
       let updatedOnCanvas = new Date(file.updated_at);
       let fileDownloadOptions = getUpdatedOptions(file.url);
       let filePath = path.join(currentPath, file.display_name);
+      log.info(file.uuid)
 
       log.info(filePath);
       log.info(fs.existsSync(filePath));
-      if (!fs.existsSync(filePath) || !store.get("files").hasOwnProperty(filePath)) {
+      if (!fs.existsSync(filePath) || !store.get("files").hasOwnProperty(file.uuid)) {
         log.info(`${filePath} doesn't exist or isn't present in data file`);
         await request.get(fileDownloadOptions).then(async function(res) {
           const buffer = Buffer.from(res, "utf8");
           await fs.writeFileSync(filePath, buffer);
         });
-        store.set(`files.${filePath}`, Date.now());
+        store.set(`files.${file.uuid}`, { last_updated: Date.now(), path: filePath });
       } else {
-        let lastCFSUpdate = new Date(store.get(`files.${filePath}`));
+        let lastCFSUpdate = new Date(store.get(`files.${file.uuid}`).last_updated);
 
         if (updatedOnCanvas > lastCFSUpdate) {
           log.info("updated on canvas");
@@ -135,7 +138,7 @@ const getFileData = async (currentPath, url, page = 1) => {
             const buffer = Buffer.from(res, "utf8");
             await fs.writeFileSync(filePath, buffer);
           });
-          store.set(`files.${filePath}`, Date.now());
+          store.set(`files.${file.uuid}`, { last_updated: Date.now(), path: filePath });
         } else {
           log.info("no need to update");
         }
@@ -147,24 +150,6 @@ const getFileData = async (currentPath, url, page = 1) => {
 
   return;
 };
-
-// const saveFileMap = (exports.saveFileMap = () => {
-//   try {
-//     fs.writeFile(
-//       path.join(__dirname, "../data.json"),
-//       JSON.stringify(storage),
-//       err => {
-//         if (err) {
-//           log.error(err);
-//           return;
-//         }
-//         log.info("Saved data.json");
-//       }
-//     );
-//   } catch (err) {
-//     log.error(err);
-//   }
-// });
 
 const isConnected = (exports.isConnected = () => {
   try {
@@ -184,8 +169,55 @@ const isConnected = (exports.isConnected = () => {
   }
 });
 
+const newFilesExist = (exports.newFilesExist = async courses => {
+  try {
+    for (let course of courses) {
+      if (await newFileInCourse(course.id)) {
+        return true
+      }
+    } return false
+  }
+  catch (err) {
+    log.error(err)
+  }
+});
+
 const getUpdatedOptions = url => {
   let updatedOptions = JSON.parse(JSON.stringify(options));
   updatedOptions.uri = url;
   return updatedOptions;
 };
+
+const newFileInCourse = async courseID => {
+  let newFileOptions = getUpdatedOptions(`https://${store.get("schoolCode")}.instructure.com/api/v1/courses/${courseID}/files?sort=updated_at&order=desc`);
+  try {
+    log.info(`requesting: ${newFileOptions.uri}`)
+    let latestFiles = await request(newFileOptions)
+    if (new Date(latestFiles[0].updated_at) > new Date(store.get("lastUpdated"))) {
+      log.info('true')
+      return true
+    } else {
+      log.info('false')
+      return false
+    } 
+  } catch(err) {
+    if (err == `StatusCodeError: 401 - {"status":"unauthorized","errors":[{"message":"user not authorized to perform that action"}]}`) {
+      log.info(`User not authorized to view files for ${courseID}`)
+      return false
+    } else log.error(err)
+  }
+}
+
+const hasAccessToFilesAPI = async courseID => {
+  let newFileOptions = getUpdatedOptions(`https://${store.get("schoolCode")}.instructure.com/api/v1/courses/${courseID}/files?sort=updated_at&order=desc`);
+  try {
+    log.info(`requesting: ${newFileOptions.uri}`)
+    await request(newFileOptions)
+    return true
+  } catch(err) {
+    if (err == `StatusCodeError: 401 - {"status":"unauthorized","errors":[{"message":"user not authorized to perform that action"}]}`) {
+      log.info(`User not authorized to view files for ${courseID}`)
+      return false
+    } else log.error(err)
+  }
+}
