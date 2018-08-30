@@ -8,7 +8,6 @@ const store = new Store();
 
 let headers = {};
 let connected = false;
-let syncResponse = {};
 
 const options = {
   method: "GET",
@@ -18,7 +17,7 @@ const options = {
   encoding: null
 };
 
-const getCanvasCourses = (exports.getCanvasCourses = async (
+exports.getCanvasCourses = async (
   schoolCode,
   developerKey
 ) => {
@@ -42,9 +41,9 @@ const getCanvasCourses = (exports.getCanvasCourses = async (
     }
     return { success: false, message: error.message };
   }
-});
+};
 
-const getCanvasFiles = (exports.getCanvasFiles = async (
+exports.getCanvasFiles = async (
   schoolCode,
   courses,
   rootDir
@@ -75,7 +74,7 @@ const getCanvasFiles = (exports.getCanvasFiles = async (
 
   log.info("got files successfully");
   return;
-});
+};
 
 const getFolderData = async (folderPath, folderURL) => {
   try {
@@ -151,7 +150,7 @@ const getFileData = async (currentPath, url, page = 1) => {
   return;
 };
 
-const isConnected = (exports.isConnected = () => {
+exports.isConnected = () => {
   try {
     if (
       store.get('syncDir') !== undefined &&
@@ -167,9 +166,9 @@ const isConnected = (exports.isConnected = () => {
   catch (err) {
     log.error(err)
   }
-});
+};
 
-const newFilesExist = (exports.newFilesExist = async courses => {
+exports.newFilesExist = async courses => {
   try {
     for (let course of courses) {
       if (await newFileInCourse(course.id)) {
@@ -180,7 +179,7 @@ const newFilesExist = (exports.newFilesExist = async courses => {
   catch (err) {
     log.error(err)
   }
-});
+};
 
 const getUpdatedOptions = url => {
   let updatedOptions = JSON.parse(JSON.stringify(options));
