@@ -95,7 +95,11 @@ const createWindow = (exports.createWindow = () => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile("./src/login.html");
+  if(process.platform === "win32"){
+      mainWindow.loadFile(__dirname + "/src/login.html");
+  } else{
+      mainWindow.loadFile("./src/login.html");
+  }
 
   // mainWindow.webContents.openDevTools();
 
@@ -233,7 +237,11 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
   
           let response = await request(options)
           store.set("developerKey", JSON.parse(response).visible_token) 
-          targetWindow.loadFile('./src/setup.html')
+          if(process.platform === "win32"){
+              targetWindow.loadFile(__dirname + "/src/setup.html");
+          } else{
+              targetWindow.loadFile("./src/setup.html");
+          }
         }
       }) 
     }
