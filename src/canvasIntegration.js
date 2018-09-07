@@ -200,7 +200,7 @@ const newFileInCourse = async courseID => {
       return false
     } 
   } catch(err) {
-    if (err == `StatusCodeError: 401 - {"status":"unauthorized","errors":[{"message":"user not authorized to perform that action"}]}`) {
+    if (err === `StatusCodeError: 401 - {"status":"unauthorized","errors":[{"message":"user not authorized to perform that action"}]}`) {
       log.info(`User not authorized to view files for ${courseID}`)
       return false
     } else log.error(err)
@@ -214,7 +214,7 @@ const hasAccessToFilesAPI = async courseID => {
     await request(newFileOptions)
     return true
   } catch(err) {
-    if (err == `StatusCodeError: 401 - {"status":"unauthorized","errors":[{"message":"user not authorized to perform that action"}]}`) {
+    if (err === `StatusCodeError: 401 - {"status":"unauthorized","errors":[{"message":"user not authorized to perform that action"}]}`) {
       log.info(`User not authorized to view files for ${courseID}`)
       return false
     } else log.error(err)
