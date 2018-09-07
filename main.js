@@ -1,6 +1,6 @@
 // Modules to control application life and create native browser window
 const { app, BrowserWindow, Menu, shell, dialog, Tray } = require("electron");
-const request = require('request-promise')
+const request = require('request-promise');
 const applicationMenu = require("./src/application-menus");
 const path = require("path");
 const moment = require("moment");
@@ -115,7 +115,7 @@ const createWindow = (exports.createWindow = () => {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
-})
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -170,7 +170,7 @@ app.on("ready", () => {
 });
 
 app.commandLine.appendSwitch('remote-debugging-port', '9222');
-app.setLoginItemSettings({openAtLogin: true, openAsHidden: true})
+app.setLoginItemSettings({openAtLogin: true, openAsHidden: true});
 
 // Quit when all windows are closed.
 app.on("window-all-closed", function() {
@@ -196,21 +196,21 @@ const chooseDirectory = (exports.chooseDirectory = targetWindow => {
 });
 
 const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
-  log.info('setting school code')
+  log.info('setting school code');
   store.set("files", {});
   store.set("schoolCode", schoolCode);
-  let schoolURL = `https://${schoolCode}.instructure.com`
-  targetWindow.loadURL(schoolURL)
-  let mainSession = targetWindow.webContents.session
-  let longTermToken = ''
+  let schoolURL = `https://${schoolCode}.instructure.com`;
+  targetWindow.loadURL(schoolURL);
+  let mainSession = targetWindow.webContents.session;
+  let longTermToken = '';
 
   targetWindow.on('page-title-updated', async function(event, pageTitle) {
     if (pageTitle === "Dashboard") {
-      log.info('in canvas now creating auth token')
+      log.info('in canvas now creating auth token');
       mainSession.cookies.get({}, async (error, cookies) => {
-        let authenticity_token = ''
-        let canvas_session_token = ''
-        let purpose = 'canvasFileSync'
+        let authenticity_token = '';
+        let canvas_session_token = '';
+        let purpose = 'canvasFileSync';
         if (longTermToken === '') {
           for (let cookie of cookies) { 
             if (cookie.name === '_csrf_token') {
@@ -235,8 +235,8 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
             body: `authenticity_token=${authenticity_token}&access_token%5Bpurpose%5D=${purpose}` 
           };
   
-          let response = await request(options)
-          store.set("developerKey", JSON.parse(response).visible_token) 
+          let response = await request(options);
+          store.set("developerKey", JSON.parse(response).visible_token);
           if(process.platform === "win32"){
               targetWindow.loadFile(__dirname + "/src/setup.html");
           } else{
@@ -295,9 +295,9 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
 
 const repeatingSyncWithCanvas = async () => {
   try {
-    log.info("setting menu to connecting menu")
+    log.info("setting menu to connecting menu");
     updateMenu(connectingMenu);
-    log.info("set menu to connecting menu")
+    log.info("set menu to connecting menu");
     let getCanvasCoursesResponse = await canvasIntegration.getCanvasCourses(
       store.get("schoolCode"),
       store.get("developerKey")
@@ -305,7 +305,7 @@ const repeatingSyncWithCanvas = async () => {
   
     if (getCanvasCoursesResponse.success) {
       if(await canvasIntegration.newFilesExist(getCanvasCoursesResponse.response)) {
-        log.info('new files exist')
+        log.info('new files exist');
         let filesResponse = await canvasIntegration.getCanvasFiles(
           store.get("schoolCode"),
           getCanvasCoursesResponse.response,
@@ -315,7 +315,7 @@ const repeatingSyncWithCanvas = async () => {
         log.info('no new files exist')
       }
       updateDate();
-      log.info("setting menu to connected menu")
+      log.info("setting menu to connected menu");
       updateMenu(getUpdatedConnectedMenu(lastSynced));
     }
   } catch(err) {

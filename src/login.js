@@ -25,14 +25,14 @@ schoolCode.addEventListener('keypress', function (e) {
 
 go.addEventListener("click", event => {
   goLogin()
-})
+});
 
 const goLogin = () => {
-  go.classList.add('is-loading')
-  log.info('Renderer: getting auth token')
-  mainProcess.getAuthToken(currentWindow, schoolCode.value)
+  go.classList.add('is-loading');
+  log.info('Renderer: getting auth token');
+  mainProcess.getAuthToken(currentWindow, schoolCode.value);
   log.info('got auth token')
-}
+};
 
 startButton.addEventListener("click", event => {
   let validConfig = true;

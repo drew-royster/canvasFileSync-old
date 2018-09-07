@@ -83,7 +83,7 @@ const getFolderData = async (folderPath, folderURL) => {
     for (let folder of folderResponse) {
       //course files folder is technically the root folder
       let currentFolderPath = "";
-      log.info(`${folder.name} updated recently getting new files`)
+      log.info(`${folder.name} updated recently getting new files`);
       if (folder.name !== "course files") {
         currentFolderPath = path.join(folderPath, folder.name);
       } else {
@@ -117,7 +117,7 @@ const getFileData = async (currentPath, url, page = 1) => {
       let updatedOnCanvas = new Date(file.updated_at);
       let fileDownloadOptions = getUpdatedOptions(file.url);
       let filePath = path.join(currentPath, file.display_name);
-      log.info(file.uuid)
+      log.info(file.uuid);
 
       log.info(filePath);
       log.info(fs.existsSync(filePath));
@@ -157,7 +157,7 @@ exports.isConnected = () => {
       store.get('schoolCode') !== undefined &&
       store.get('developerKey') !== undefined
     ) {
-      log.info(store.get('syncDir'))
+      log.info(store.get('syncDir'));
       return true;
     } else {
       return false;
@@ -190,33 +190,33 @@ const getUpdatedOptions = url => {
 const newFileInCourse = async courseID => {
   let newFileOptions = getUpdatedOptions(`https://${store.get("schoolCode")}.instructure.com/api/v1/courses/${courseID}/files?sort=updated_at&order=desc`);
   try {
-    log.info(`requesting: ${newFileOptions.uri}`)
-    let latestFiles = await request(newFileOptions)
+    log.info(`requesting: ${newFileOptions.uri}`);
+    let latestFiles = await request(newFileOptions);
     if (new Date(latestFiles[0].updated_at) > new Date(store.get("lastUpdated"))) {
-      log.info('true')
+      log.info('true');
       return true
     } else {
-      log.info('false')
+      log.info('false');
       return false
     } 
   } catch(err) {
     if (err === `StatusCodeError: 401 - {"status":"unauthorized","errors":[{"message":"user not authorized to perform that action"}]}`) {
-      log.info(`User not authorized to view files for ${courseID}`)
+      log.info(`User not authorized to view files for ${courseID}`);
       return false
     } else log.error(err)
   }
-}
+};
 
 const hasAccessToFilesAPI = async courseID => {
   let newFileOptions = getUpdatedOptions(`https://${store.get("schoolCode")}.instructure.com/api/v1/courses/${courseID}/files?sort=updated_at&order=desc`);
   try {
-    log.info(`requesting: ${newFileOptions.uri}`)
-    await request(newFileOptions)
+    log.info(`requesting: ${newFileOptions.uri}`);
+    await request(newFileOptions);
     return true
   } catch(err) {
     if (err === `StatusCodeError: 401 - {"status":"unauthorized","errors":[{"message":"user not authorized to perform that action"}]}`) {
-      log.info(`User not authorized to view files for ${courseID}`)
+      log.info(`User not authorized to view files for ${courseID}`);
       return false
     } else log.error(err)
   }
-}
+};
