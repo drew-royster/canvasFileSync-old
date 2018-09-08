@@ -13,6 +13,10 @@ input {
   font: menu;
 }
 
+::-webkit-scrollbar {
+  display: none;
+}
+
 #main-logo {
   align-items: center;
   margin-top: 10%;
