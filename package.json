@@ -11,13 +11,15 @@
     "build-linux": "electron-packager . --platform=linux --asar --overwrite --out=build --icon=icons_normal/icons/png/48x48.png",
     "test": "mocha"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/drew-royster/canvasFileSync",
   "keywords": [
     "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "Canvas LMS",
+    "Canvas File Sync",
+    "Student",
+    "Canvas",
+    "University",
+    "File Sync"
   ],
   "author": "Drew Royster",
   "productName": "Canvas File Sync",
