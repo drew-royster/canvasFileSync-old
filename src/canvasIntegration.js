@@ -21,26 +21,27 @@ exports.getCanvasCourses = async (
   schoolCode,
   developerKey
 ) => {
-  try {
-    store.set("schoolCode", schoolCode);
-    store.set("developerKey", developerKey);
-    canvasHeaders = { Authorization: `Bearer ${developerKey}` };
-    if (!connected) {
-      options.uri = `https://${schoolCode}.${options.uri}`;
-      connected = true;
+    let canvasHeaders;
+    try {
+        store.set("schoolCode", schoolCode);
+        store.set("developerKey", developerKey);
+        canvasHeaders = {Authorization: `Bearer ${developerKey}`};
+        if (!connected) {
+            options.uri = `https://${schoolCode}.${options.uri}`;
+            connected = true;
+        }
+        options.headers = canvasHeaders;
+        let rootResponse = await request(options);
+        return {success: true, message: "success", response: rootResponse};
+    } catch (error) {
+        log.error(error);
+        if (
+            error.message === '401 - {"errors":[{"message":"Invalid access token."}]}'
+        ) {
+            return {success: false, message: "Invalid Developer Key"};
+        }
+        return {success: false, message: error.message};
     }
-    options.headers = canvasHeaders;
-    let rootResponse = await request(options);
-    return { success: true, message: "success", response: rootResponse };
-  } catch (error) {
-    log.error(error);
-    if (
-      error.message === '401 - {"errors":[{"message":"Invalid access token."}]}'
-    ) {
-      return { success: false, message: "Invalid Developer Key" };
-    }
-    return { success: false, message: error.message };
-  }
 };
 
 exports.getCanvasFiles = async (
@@ -73,7 +74,6 @@ exports.getCanvasFiles = async (
   }
 
   log.info("got files successfully");
-  return;
 };
 
 const getFolderData = async (folderPath, folderURL) => {
@@ -102,7 +102,6 @@ const getFolderData = async (folderPath, folderURL) => {
   } catch (error) {
     log.error(error);
   }
-  return;
 };
 
 const getFileData = async (currentPath, url, page = 1) => {
@@ -146,8 +145,6 @@ const getFileData = async (currentPath, url, page = 1) => {
   } catch (error) {
     log.error(error);
   }
-
-  return;
 };
 
 exports.isConnected = () => {

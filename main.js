@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, shell, dialog, Tray } = require("electron");
+const { app, BrowserWindow, Menu, dialog, Tray } = require("electron");
 const request = require('request-promise');
 const applicationMenu = require("./src/application-menus");
 const path = require("path");
@@ -97,8 +97,6 @@ const createWindow = (exports.createWindow = () => {
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, "src/login.html"));
 
-  // mainWindow.webContents.openDevTools();
-
   // Open the DevTools.
   if (process.env.debug === "true") {
     mainWindow.webContents.openDevTools();
@@ -185,13 +183,13 @@ app.on("activate", function() {
   }
 });
 
-const chooseDirectory = (exports.chooseDirectory = targetWindow => {
+exports.chooseDirectory = targetWindow => {
   log.info("choosing directory");
   const directory = dialog.showOpenDialog({ properties: ["openDirectory"] });
   targetWindow.webContents.send("directory-chosen", directory);
-});
+};
 
-const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
+exports.getAuthToken = async (targetWindow, schoolCode) => {
   log.info('setting school code');
   store.set("files", {});
   store.set("schoolCode", schoolCode);
@@ -238,9 +236,9 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
       }) 
     }
   })
-});
+};
 
-const syncWithCanvas = (exports.syncWithCanvas = async (
+exports.syncWithCanvas = async (
   targetWindow,
   rootDir
 ) => {
@@ -283,7 +281,7 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
   } catch (err) {
     log.error(err);
   }
-});
+};
 
 const repeatingSyncWithCanvas = async () => {
   try {
