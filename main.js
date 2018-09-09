@@ -189,11 +189,11 @@ exports.chooseDirectory = targetWindow => {
   targetWindow.webContents.send("directory-chosen", directory);
 };
 
-exports.getAuthToken = async (targetWindow, schoolCode) => {
-  log.info('setting school code');
+exports.getAuthToken = async (targetWindow, accountDomain) => {
+  log.info('setting account domain');
   store.set("files", {});
-  store.set("schoolCode", schoolCode);
-  let schoolURL = `https://${schoolCode}.instructure.com`;
+  store.set("accountDomain", accountDomain);
+  let schoolURL = `https://${accountDomain}`;
   targetWindow.loadURL(schoolURL);
   let mainSession = targetWindow.webContents.session;
   let longTermToken = '';
@@ -216,7 +216,7 @@ exports.getAuthToken = async (targetWindow, schoolCode) => {
           }
           var options = { 
             method: 'POST',
-            url: `https://${schoolCode}.instructure.com/profile/tokens`,
+            url: `https://${accountDomain}/profile/tokens`,
             headers: 
             { 
               'Cache-Control': 'no-cache',
@@ -245,7 +245,7 @@ exports.syncWithCanvas = async (
   try {
     updateMenu(connectingMenu);
     let syncResponse = await canvasIntegration.getCanvasCourses(
-      store.get("schoolCode"),
+      store.get("accountDomain"),
       store.get("developerKey")
     );
     targetWindow.webContents.send("sync-response", syncResponse);
@@ -258,7 +258,7 @@ exports.syncWithCanvas = async (
       );
       log.info("hid window");
       let filesResponse = await canvasIntegration.getCanvasFiles(
-        store.get("schoolCode"),
+        store.get("accountDomain"),
         syncResponse.response,
         rootDir
       );
@@ -289,7 +289,7 @@ const repeatingSyncWithCanvas = async () => {
     updateMenu(connectingMenu);
     log.info("set menu to connecting menu");
     let getCanvasCoursesResponse = await canvasIntegration.getCanvasCourses(
-      store.get("schoolCode"),
+      store.get("accountDomain"),
       store.get("developerKey")
     );
   
@@ -297,7 +297,7 @@ const repeatingSyncWithCanvas = async () => {
       if(await canvasIntegration.newFilesExist(getCanvasCoursesResponse.response)) {
         log.info('new files exist');
         let filesResponse = await canvasIntegration.getCanvasFiles(
-          store.get("schoolCode"),
+          store.get("accountDomain"),
           getCanvasCoursesResponse.response,
           store.get("syncDir")
         );
@@ -330,7 +330,7 @@ const disconnect = () => {
   connected = false;
   store.delete("syncDir");
   store.delete("files", {});
-  store.delete("schoolCode");
+  store.delete("accountDomain");
   store.delete("developerKey");
   store.delete("lastUpdated");
   updateMenu(notConnectedMenu);

@@ -35,6 +35,8 @@
     "spectron": "^3.8.0"
   },
   "dependencies": {
+    "javascript-autocomplete": "^1.0.3",
+    "jquery": "^3.3.1",
     "electron-log": "^2.2.16",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^2.0.0",

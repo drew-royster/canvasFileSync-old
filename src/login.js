@@ -8,29 +8,65 @@ const mainProcess = remote.require(path.join(__dirname, "../main.js"));
 const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
 const chooseDirectoryError = document.querySelector("#choose-directory-error");
-const schoolCode = document.querySelector("#school-code");
+const instructure = document.querySelector("#instructure");
 const go = document.querySelector("#go");
 const log = require("electron-log");
+const autocomplete = require('javascript-autocomplete');
+window.$ = window.jQuery = require('jquery');
 require("./crashReporter");
 let rootDir = "";
 log.info("in renderer");
 
 
-schoolCode.addEventListener('keypress', function (e) {
-  var key = e.which || e.keyCode;
-  if (key === 13) { // 13 is enter
-    goLogin()
-  }
+function charsAllowed(value) {
+    let allowedChars = new RegExp(/[A-Za-z ]+/);
+    return (allowedChars.test(value) && !value.includes("."));
+}
+
+var xhr;
+new autocomplete({
+    selector: '#instructure',
+    source: function (term, response) {
+        if (charsAllowed(term)) {
+            term = term.toLowerCase();
+            try { xhr.abort(); } catch(e){}
+            xhr = $.getJSON("https://canvas.instructure.com/api/v1/accounts/search?name=" + term,
+                function(data){
+                    response(data.slice(0, 6)); // Return first 6 items
+                }
+            ).done(() => {log.info("Domain search request successful")})
+            .fail(() => {log.info("Domain search request failed")});
+        }
+    },
+    renderItem: function (item, search){
+        return '<div class="autocomplete-suggestion" data-domain="' + item['domain'] +
+            '" data-val="'+search+'">' + item['name'] + '</div>';
+    },
+    onSelect: function (e, term, item) {
+        let input = document.getElementById("instructure");
+        log.info("Selected domain: " + item.getAttribute('data-domain'));
+        input.value = item.getAttribute('data-domain');
+        input.focus();
+        input.selectionStart = input.selectionEnd = input.value.length;
+    }
 });
 
-go.addEventListener("click", event => {
-  goLogin()
+instructure.addEventListener('keyup', function (e) {
+    if (e.key === "Enter" && instructure.value !== "" && instructure.value.includes(".")) {
+        goLogin()
+    }
+});
+
+go.addEventListener("click", () => {
+    if (instructure.value !== "" && instructure.value.includes(".")) {
+        goLogin()
+    }
 });
 
 const goLogin = () => {
   go.classList.add('is-loading');
   log.info('Renderer: getting auth token');
-  mainProcess.getAuthToken(currentWindow, schoolCode.value);
+  mainProcess.getAuthToken(currentWindow, instructure.value);
   log.info('got auth token')
 };
 

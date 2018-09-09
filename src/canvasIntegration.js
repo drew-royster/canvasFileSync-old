@@ -11,23 +11,23 @@ let connected = false;
 
 const options = {
   method: "GET",
-  uri: `instructure.com/api/v1/users/self/courses?enrollment_state=active`,
+  uri: `/api/v1/users/self/courses?enrollment_state=active`,
   headers: headers,
   json: true,
   encoding: null
 };
 
 exports.getCanvasCourses = async (
-  schoolCode,
+  accountDomain,
   developerKey
 ) => {
     let canvasHeaders;
     try {
-        store.set("schoolCode", schoolCode);
+        store.set("accountDomain", accountDomain);
         store.set("developerKey", developerKey);
         canvasHeaders = {Authorization: `Bearer ${developerKey}`};
         if (!connected) {
-            options.uri = `https://${schoolCode}.${options.uri}`;
+            options.uri = `https://${accountDomain}${options.uri}`;
             connected = true;
         }
         options.headers = canvasHeaders;
@@ -45,7 +45,7 @@ exports.getCanvasCourses = async (
 };
 
 exports.getCanvasFiles = async (
-  schoolCode,
+  accountDomain,
   courses,
   rootDir
 ) => {
@@ -63,7 +63,7 @@ exports.getCanvasFiles = async (
   
         await getFolderData(
           path.join(rootDir, courseName),
-          `https://${schoolCode}.instructure.com/api/v1/courses/${
+          `https://${accountDomain}/api/v1/courses/${
             course.id
           }/folders`
         );
@@ -151,7 +151,7 @@ exports.isConnected = () => {
   try {
     if (
       store.get('syncDir') !== undefined &&
-      store.get('schoolCode') !== undefined &&
+      store.get('accountDomain') !== undefined &&
       store.get('developerKey') !== undefined
     ) {
       log.info(store.get('syncDir'));
@@ -185,7 +185,7 @@ const getUpdatedOptions = url => {
 };
 
 const newFileInCourse = async courseID => {
-  let newFileOptions = getUpdatedOptions(`https://${store.get("schoolCode")}.instructure.com/api/v1/courses/${courseID}/files?sort=updated_at&order=desc`);
+  let newFileOptions = getUpdatedOptions(`https://${store.get("accountDomain")}/api/v1/courses/${courseID}/files?sort=updated_at&order=desc`);
   try {
     log.info(`requesting: ${newFileOptions.uri}`);
     let latestFiles = await request(newFileOptions);
@@ -205,7 +205,7 @@ const newFileInCourse = async courseID => {
 };
 
 const hasAccessToFilesAPI = async courseID => {
-  let newFileOptions = getUpdatedOptions(`https://${store.get("schoolCode")}.instructure.com/api/v1/courses/${courseID}/files?sort=updated_at&order=desc`);
+  let newFileOptions = getUpdatedOptions(`https://${store.get("accountDomain")}/api/v1/courses/${courseID}/files?sort=updated_at&order=desc`);
   try {
     log.info(`requesting: ${newFileOptions.uri}`);
     await request(newFileOptions);
