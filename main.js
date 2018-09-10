@@ -163,7 +163,6 @@ app.on("ready", () => {
   }
 });
 
-app.commandLine.appendSwitch('remote-debugging-port', '9222');
 app.setLoginItemSettings({openAtLogin: true, openAsHidden: true});
 
 // Quit when all windows are closed.
