@@ -27,7 +27,7 @@ let notConnectedMenu = [
     enabled: true
   },
   {
-    label: "Disconnect",
+    label: "Sign Out",
     enabled: false
   },
   {
@@ -46,7 +46,7 @@ let connectingMenu = [
     enabled: false
   },
   {
-    label: "Disconnect",
+    label: "Sign Out",
     enabled: false
   },
   {
@@ -72,7 +72,7 @@ const getUpdatedConnectedMenu = lastSynced => {
       }
     },
     {
-      label: "Disconnect",
+      label: "Sign Out",
       enabled: true,
       click() {
         disconnect();
@@ -195,46 +195,45 @@ exports.getAuthToken = async (targetWindow, accountDomain) => {
   let schoolURL = `https://${accountDomain}`;
   targetWindow.loadURL(schoolURL);
   let mainSession = targetWindow.webContents.session;
-  let longTermToken = '';
 
-  targetWindow.on('page-title-updated', async function(event, pageTitle) {
-    if (pageTitle === "Dashboard") {
+  targetWindow.webContents.on('will-navigate', async (event, url) => {
+    if (url === schoolURL || url.substring(0, url.length - 1) === schoolURL) { // some redirects add an '/' to the end
       log.info('in canvas now creating auth token');
-      mainSession.cookies.get({}, async (error, cookies) => {
+      mainSession.cookies.get({domain: accountDomain}, async (error, cookies) => {
         let authenticity_token = '';
         let canvas_session_token = '';
         let purpose = 'canvasFileSync';
-        if (longTermToken === '') {
-          for (let cookie of cookies) { 
-            if (cookie.name === '_csrf_token') {
-              authenticity_token = cookie.value
-            }
-            if (cookie.name === 'canvas_session') {
-              canvas_session_token = cookie.value
-            }
+        for (let cookie of cookies) {
+          if (cookie.name === '_csrf_token') {
+              authenticity_token = cookie.value;
           }
-          var options = { 
+          if (cookie.name === 'canvas_session') {
+              canvas_session_token = cookie.value;
+          }
+        }
+        let options = {
             method: 'POST',
             url: `https://${accountDomain}/profile/tokens`,
-            headers: 
-            { 
+            headers:
+            {
               'Cache-Control': 'no-cache',
               'X-Requested-With': 'XMLHttpRequest',
               Accept: 'application/json, text/javascript, application/json+canvas-string-ids, */*; q=0.01',
               'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
               'X-CSRF-Token': authenticity_token,
-              Cookie: `canvas_session=${canvas_session_token}; _csrf_token=${authenticity_token}` 
+              Cookie: `canvas_session=${canvas_session_token}; _csrf_token=${authenticity_token}`
             },
-            body: `authenticity_token=${authenticity_token}&access_token%5Bpurpose%5D=${purpose}` 
-          };
-  
-          let response = await request(options);
-          store.set("developerKey", JSON.parse(response).visible_token);
-          targetWindow.loadFile(path.join(__dirname, "src/setup.html"));
-        }
-      }) 
+            body: `authenticity_token=${authenticity_token}&access_token%5Bpurpose%5D=${purpose}`
+        };
+
+        let response = await request(options);
+        log.info("token response: " + response);
+        store.set("developerKey", JSON.parse(response).visible_token);
+        targetWindow.loadFile(path.join(__dirname, "src/setup.html"));
+
+      });
     }
-  })
+  });
 };
 
 exports.syncWithCanvas = async (
