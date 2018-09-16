@@ -13,6 +13,10 @@ input {
   font: menu;
 }
 
+::-webkit-scrollbar {
+  display: none;
+}
+
 #main-logo {
   align-items: center;
   margin-top: 10%;
@@ -58,6 +62,9 @@ input {
   margin-right: auto;
   display: block;
   width: 250px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #start-sync {
