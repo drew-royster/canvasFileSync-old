@@ -4,11 +4,9 @@
 const { shell, remote, ipcRenderer } = require("electron");
 const currentWindow = remote.getCurrentWindow();
 const path = require("path");
-const canvasIntegration = require("./canvasIntegration");
 const mainProcess = remote.require(path.join(__dirname, "../main.js"));
 const startButton = document.querySelector("#start-sync");
 const chooseDirectoryButton = document.querySelector("#chooseDirectory");
-const defaultDirectory = document.querySelector("#defaultDirectory");
 const chooseDirectoryError = document.querySelector("#choose-directory-error");
 const Store = require('electron-store');
 const store = new Store();

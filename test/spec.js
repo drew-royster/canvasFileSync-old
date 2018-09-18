@@ -100,7 +100,7 @@
 
   // it("getting courses works", async function() {
   //   let response = await canvasIntegration.getCanvasCourses(
-  //     process.env.schoolCode,
+  //     process.env.accountDomain,
   //     process.env.devKey
   //   );
   //   assert.equal(response.success, true);

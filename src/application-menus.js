@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell } = require("electron");
+const { Menu } = require("electron");
 
 const template = [
   {

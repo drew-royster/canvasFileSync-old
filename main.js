@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu, shell, dialog, Tray } = require("electron");
+const { app, BrowserWindow, Menu, dialog, Tray } = require("electron");
 const request = require('request-promise');
 const applicationMenu = require("./src/application-menus");
 const path = require("path");
@@ -97,8 +97,6 @@ const createWindow = (exports.createWindow = () => {
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, "src/login.html"));
 
-  // mainWindow.webContents.openDevTools();
-
   // Open the DevTools.
   if (process.env.debug === "true") {
     mainWindow.webContents.openDevTools();
@@ -165,7 +163,6 @@ app.on("ready", () => {
   }
 });
 
-app.commandLine.appendSwitch('remote-debugging-port', '9222');
 app.setLoginItemSettings({openAtLogin: true, openAsHidden: true});
 
 // Quit when all windows are closed.
@@ -185,17 +182,17 @@ app.on("activate", function() {
   }
 });
 
-const chooseDirectory = (exports.chooseDirectory = targetWindow => {
+exports.chooseDirectory = targetWindow => {
   log.info("choosing directory");
   const directory = dialog.showOpenDialog({ properties: ["openDirectory"] });
   targetWindow.webContents.send("directory-chosen", directory);
-});
+};
 
-const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) => {
-  log.info('setting school code');
+exports.getAuthToken = async (targetWindow, accountDomain) => {
+  log.info('setting account domain');
   store.set("files", {});
-  store.set("schoolCode", schoolCode);
-  let schoolURL = `https://${schoolCode}.instructure.com`;
+  store.set("accountDomain", accountDomain);
+  let schoolURL = `https://${accountDomain}`;
   targetWindow.loadURL(schoolURL);
   let mainSession = targetWindow.webContents.session;
   let longTermToken = '';
@@ -218,7 +215,7 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
           }
           var options = { 
             method: 'POST',
-            url: `https://${schoolCode}.instructure.com/profile/tokens`,
+            url: `https://${accountDomain}/profile/tokens`,
             headers: 
             { 
               'Cache-Control': 'no-cache',
@@ -238,16 +235,16 @@ const getAuthToken = (exports.getAuthToken = async (targetWindow, schoolCode) =>
       }) 
     }
   })
-});
+};
 
-const syncWithCanvas = (exports.syncWithCanvas = async (
+exports.syncWithCanvas = async (
   targetWindow,
   rootDir
 ) => {
   try {
     updateMenu(connectingMenu);
     let syncResponse = await canvasIntegration.getCanvasCourses(
-      store.get("schoolCode"),
+      store.get("accountDomain"),
       store.get("developerKey")
     );
     targetWindow.webContents.send("sync-response", syncResponse);
@@ -260,7 +257,7 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
       );
       log.info("hid window");
       let filesResponse = await canvasIntegration.getCanvasFiles(
-        store.get("schoolCode"),
+        store.get("accountDomain"),
         syncResponse.response,
         rootDir
       );
@@ -283,7 +280,7 @@ const syncWithCanvas = (exports.syncWithCanvas = async (
   } catch (err) {
     log.error(err);
   }
-});
+};
 
 const repeatingSyncWithCanvas = async () => {
   try {
@@ -291,7 +288,7 @@ const repeatingSyncWithCanvas = async () => {
     updateMenu(connectingMenu);
     log.info("set menu to connecting menu");
     let getCanvasCoursesResponse = await canvasIntegration.getCanvasCourses(
-      store.get("schoolCode"),
+      store.get("accountDomain"),
       store.get("developerKey")
     );
   
@@ -299,7 +296,7 @@ const repeatingSyncWithCanvas = async () => {
       if(await canvasIntegration.newFilesExist(getCanvasCoursesResponse.response)) {
         log.info('new files exist');
         let filesResponse = await canvasIntegration.getCanvasFiles(
-          store.get("schoolCode"),
+          store.get("accountDomain"),
           getCanvasCoursesResponse.response,
           store.get("syncDir")
         );
@@ -332,7 +329,7 @@ const disconnect = () => {
   connected = false;
   store.delete("syncDir");
   store.delete("files", {});
-  store.delete("schoolCode");
+  store.delete("accountDomain");
   store.delete("developerKey");
   store.delete("lastUpdated");
   updateMenu(notConnectedMenu);
