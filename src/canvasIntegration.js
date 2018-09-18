@@ -55,7 +55,7 @@ exports.getCanvasFiles = async (
     for (let course of courses) {
       log.info(`${course.name}\n`);
       if (await hasAccessToFilesAPI(course.id)) {
-        let courseName = course.name.split("|")[0];
+        let courseName = course.name.split("|")[0].trim();
         if (!fs.existsSync(path.join(rootDir, courseName))) {
           console.log(path.join(rootDir, courseName));
           fs.mkdirSync(path.join(rootDir, courseName));
